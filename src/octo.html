@@ -1,0 +1,3956 @@
+<style>
+textarea {
+	font-family: monospace;
+}
+input[type="text"] {
+	font-family: monospace;
+}
+div.canv {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+}
+td.key {
+	height: 40px;
+	width:  40px;
+	vertical-align: center;
+	text-align: center;
+	color: black;
+	background-color: white;
+	font-family: sans-serif;
+	font-weight: bold;
+	border: 1px solid black;
+
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	user-select: none;
+}
+td.key:active,
+td.key.active {
+	color: white;
+	background-color: black;
+	border: 1px solid white;
+}
+div.buttons {
+	position: fixed;
+	top: 40px;
+	left: 40px;
+}
+div.debugger {
+	position: fixed;
+	top: 100px;
+	left: 40px;
+	font-family: monospace;
+	color: white;
+}
+table.debugger {
+	font-family: monospace;
+	color: white;
+}
+tr.debugger-searchline {
+	text-decoration: underline;
+	font-weight: bold;
+}
+div.lightbox {
+	position: fixed;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	height: 100%;
+	background-color: #000000;
+	/*opacity: 0.75;*/
+}
+img.centericon {
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	margin: -32px 0 0 -32px;
+}
+body {
+	margin: 0;
+	padding:0;
+}
+div.menubar {
+	text-align:center;
+	background-color:black;
+	padding:7px;
+}
+div.statusbar {
+	text-align:center;
+	background-color:black;
+	color:white;
+	height: 25px;
+	padding:7px;
+	position:fixed;
+	bottom: 0;
+	width: 100%;
+}
+h3 {
+	color:white;
+	background-color:black;
+	margin: 3px;
+}
+div.rightpanel {
+	position: absolute;
+}
+div.leftpanel {
+	position: absolute;
+	background-color:white;
+	left: 5px;
+	padding-bottom: 60px;
+	height: 100%;
+	top: 1px; /* account for the top border overlapping menubar */
+	bottom: 0;
+}
+canvas#spriteEditorPalette {
+	border-left: 1px solid;
+	border-right: 1px solid;
+	border-top: 1px solid;
+}
+</style>
+<body>
+	<div class="menubar">
+		<a href="https://github.com/JohnEarnest/Octo"><span src="images/logo.png" style="padding-right: 30px;vertical-align: middle;">Octo - github</span></a>
+		<button type="button" onClick="run()">Run</button>
+		<button type="button" onClick="compile()">Compile</button>
+		<button type="button" onClick="share()">Share</button>
+		<select id="examples" onchange="loadExample()">
+			<option value="">Examples...</option>
+		</select>
+		<select id="framerate" onchange="framerate()">
+			<option value="7">7 Cycles/Frame</option>
+			<option value="15">15 Cycles/Frame</option>
+			<option value="20" selected="selected">20 Cycles/Frame</option>
+			<option value="30">30 Cycles/Frame</option>
+			<option value="100">100 Cycles/Frame</option>
+			<option value="200">200 Cycles/Frame</option>
+			<option value="500">500 Cycles/Frame</option>
+			<option value="1000">1000 Cycles/Frame</option>
+		</select>
+		<button type="button" onClick="toggleManual();">Manual</button>
+		<button type="button" onClick="toggleOptions();">Options</button>
+		<button type="button" onClick="toggleSpriteEditor();">Sprite Editor</button>
+		<button type="button" onClick="toggleAudioEditor();" class="xofeature" style="display:none" class="xofeature" style="display:none" >Audio Editor</button>
+		<button type="button" onClick="toggleBinaryTools();">Binary Tools</button>
+	</div>
+
+	<div style="padding-bottom: 40px; position: relative; height: 100%;">
+		<center>
+			<div id="manual" class="leftpanel" style="display:none">
+				<h3>Manual</h3>
+				<iframe src="https://johnearnest.github.io/Octo/docs/Manual.html" width="450" height="100%"></iframe>
+			</div>
+
+			<textarea id="input"  rows="40" cols="100" spellcheck="false">
+# Chip8 is a virtual machine designed in 1977 for programming video games.
+# Octo is a high level assembler, disassembler and simulator for Chip8.
+# Click 'Run' and then press ASWD to move the sprite around the screen.
+# Click the Octo logo for source, documentation and examples.
+
+:alias px v3
+:alias py v4
+
+: main
+	px := random 0b0011111
+	py := random 0b0001111
+	i  := person
+	sprite px py 8
+
+	loop
+		# erase the player, update its position and then redraw:
+		sprite px py 8
+		v0 := 5   if v0 key then py += -1 # keyboard W
+		v0 := 8   if v0 key then py +=  1 # keyboard S
+		v0 := 7   if v0 key then px += -1 # keyboard A
+		v0 := 9   if v0 key then px +=  1 # keyboard D
+		sprite px py 8
+
+		# lock the framerate of this program via the delay timer:
+		loop
+			vf := delay
+			if vf != 0 then
+		again
+		vf := 3
+		delay := vf
+	again
+
+: person
+	0x70 0x70 0x20 0x70 0xA8 0x20 0x50 0x50
+</textarea>
+			<div id="spriteEditor" class="rightpanel" style="display:none">
+				<h3>Sprite Editor</h3>
+				<center>
+					Click and drag to draw.<br/>
+					Right-click and drag to erase.<br/><br/>
+					<input type="checkbox" id="spriteEditorSize" onchange="setSpriteEditorSize();">
+					<label for="spriteEditorSize">16x16 mode</label>
+					<br/>
+					<div class="xofeature" style="display:none">
+					<input type="checkbox" id="spriteEditorColor" onchange="setSpriteEditorColor();">
+					<label for="spriteEditorColor">Color mode</label>
+					</div>
+					<br/>
+					<canvas id="spriteEditorPalette" width="200px" height="25px" style="display:none;"></canvas><br/>
+					<canvas id="draw" width="200" height="375" style="border:1px solid;"></canvas><br/>
+					<textarea id="spriteData" rows="3" cols="25" onchange="editHex();" onkeyup="editHex();"></textarea>
+				</center>
+			</div>
+
+			<div id="options" class="rightpanel" style="display:none">
+				<h3>Colors</h3>
+				<table border=0>
+					<tr>
+						<td>Background</td>
+						<td><input type="text" size="7" id="backEdit" onchange="editBack();" onkeyup="editBack();"></td>
+						<td bgcolor="0xFF0000" id="backSample"  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+					</tr>
+					<tr>
+						<td>Foreground 1</td>
+						<td><input type="text" size="7" id="foreEdit1" onchange="editFore1();" onkeyup="editFore1();"></td>
+						<td bgcolor="0xFF0000" id="foreSample1"  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+					</tr>
+					<tr class="xofeature" style="display:none">
+						<td>Foreground 2 (XO-Chip)</td>
+						<td><input type="text" size="7" id="foreEdit2" onchange="editFore2();" onkeyup="editFore2();"></td>
+						<td bgcolor="0xFF0000" id="foreSample2"  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+					</tr>
+					<tr class="xofeature" style="display:none">
+						<td>Blended (XO-Chip)</td>
+						<td><input type="text" size="7" id="blendEdit" onchange="editBlend();" onkeyup="editBlend();"></td>
+						<td bgcolor="0xFF0000" id="blendSample"  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+					</tr>
+					<tr>
+						<td>Buzzer</td>
+						<td><input type="text" size="7" id="buzzEdit" onchange="editBuzz();" onkeyup="editBuzz();"></td>
+						<td bgcolor="0xFF0000" id="buzzSample"  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+					</tr>
+					<tr>
+						<td>Silence</td>
+						<td><input type="text" size="7" id="silentEdit" onchange="editSilent();" onkeyup="editSilent();"></td>
+						<td bgcolor="0xFF0000" id="silentSample"  >&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+					</tr>
+				</table>
+				<select id="palettePreset" onChange="palettePreset();">
+					<option value="">Palette Presets...</option>
+					<option value='classic'>Octo Classic&#8482;</option>
+					<option value='["#FF0000","#FFFF00","#FFFFFF","#000000","#990000","#330000"]'>Hot Dog Stand</option>
+					<option value='["#306230","#8BAC0F","#9BBC0F","#0F380F","#333333","#000000"]'>Pea Soup LCD</option>
+					<option value='["#000000","#FFFFFF","#666666","#AAAAAA","#666666","#000000"]'>Grayscale</option>
+					<option value='["#00FF00","#FF0000","#FFFF00","#000000","#999900","#333300"]'>CGA 0</option>
+					<option value='["#FF00FF","#00FFFF","#FFFFFF","#000000","#990099","#330033"]'>CGA 1</option>
+				</select>
+
+				<h3>Misc</h3>
+				Screen Rotation:
+				<select id="screenRotation" onChange="editRotation();">
+					<option value="0" selected="selected">0</option>
+					<option value="90">90</option>
+					<option value="180">180</option>
+					<option value="270">270</option>
+				</select>
+
+				<h3>Compatibility</h3>
+				<table>
+					<tr>
+						<td><input type="checkbox" id="shiftQuirks" onchange="setQuirks('shiftQuirks');"></td>
+						<td><tt>&lt;&lt;=</tt> and <tt>&gt;&gt;=</tt> modify <tt>vx</tt> in place and ignore <tt>vy</tt>.</td>
+					</tr>
+					<tr>
+						<td><input type="checkbox" id="loadStoreQuirks" onchange="setQuirks('loadStoreQuirks');"></td>
+						<td><tt>load</tt> and <tt>store</tt> operations leave <tt>i</tt> unchanged.</td>
+					</tr>
+					<tr>
+						<td><input type="checkbox" id="vfOrderQuirks" onchange="setQuirks('vfOrderQuirks');"></td>
+						<td>arithmetic results write to <tt>vf</tt> after status flag.</td>
+					</tr>
+					<tr>
+						<td><input type="checkbox" id="clipQuirks" onchange="setQuirks('clipQuirks');"></td>
+						<td>clip sprites at screen edges instead of wrapping</td>
+					</tr>
+					<tr>
+						<td><input type="checkbox" id="jumpQuirks" onchange="setQuirks('jumpQuirks');"></td>
+						<td>4 high bits of target address determines the offset register of <tt>jump0</tt> instead of <tt>v0</tt></td>
+					</tr>
+					<tr>
+						<td><input type="checkbox" id="enableXO" onchange="setEnableXO();"></td>
+						<td>enable XO-Chip extended instruction set.</td>
+					</tr>
+				</table>
+			</div>
+
+			<div id="bintools" class="rightpanel" style="display:none">
+				<h3>Binary Tools</h3>
+				Note that decompilation can be slow.<br/>
+				Enter a byte array:<br/>
+				<textarea id="decompileInput" rows="6" cols="40">[0xD0, 0x15, 0x70, 0x04, 0x40, 0x40, 0x71, 0x05, 0x40, 0x40, 0x60, 0x00, 0x12, 0x00]</textarea><br/>
+				<button type="button" onclick="decompileStart()">Decompile</button>
+				<button type="button" onclick="decompileRun()">Run</button>
+				<button type="button" onclick="decompileFile()">Open File...</button>
+				<input type="file" id="fileinput" onchange="decompileRequestLoad()" style="display:none">
+				<h3>Decompiler Options</h3>
+				<select id="numericFormat" onchange="setNumericFormat();">
+					<option value='default'>Numeric Format</option>
+					<option value='hex'>Hexadecimal</option>
+					<option value='dec'>Decimal</option>
+					<option value='bin'>Binary</option>
+				</select>
+				<table>
+					<tr>
+						<td><input type="checkbox" id="maskOverride" onchange="setMaskFormatOverride();"></td>
+						<td>Format the numeric operand of <tt>random n</tt> as binary</td>
+					</tr>
+				</table>
+				<h3>File Output</h3>
+				<button type="button" onclick="saveBinaryFile()">Save .ch8 File</button>
+			</div>
+
+			<div id="audiotools" class="rightpanel" style="display:none">
+				<h3>Audio Editor</h3>
+				Enter a pattern of 16 bytes:<br>
+				<canvas id="drawAudio" width="256" height="32"></canvas></br>
+				<textarea id="audioPattern" rows="4" cols="40" spellcheck="false" onchange="editAudioHex('audioPattern');" onkeyup="editAudioHex('audioPattern');"></textarea><br>
+				<select id="audioPreset" onchange="presetAudio();">
+					<option value="">Choose a preset...</option>
+					<option value="0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00">1/2 Duty Square Wave</option>
+					<option value="0xFF 0xFF 0xFF 0xFF 0x00 0x00 0x00 0x00 0xFF 0xFF 0xFF 0xFF 0x00 0x00 0x00 0x00">1/4 Duty Square Wave</option>
+					<option value="0xFF 0xFF 0x00 0x00 0xFF 0xFF 0x00 0x00 0xFF 0xFF 0x00 0x00 0xFF 0xFF 0x00 0x00">1/8 Duty Square Wave</option>
+					<option value="0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00">1/16 Duty Square Wave</option>
+					<option value="0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0">1/32 Duty Square Wave</option>
+					<option value="0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC">1/64 Duty Square Wave</option>
+					<option value="0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA">1/128 Duty Square Wave</option>
+					<option value="0x10 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x10 0x00 0x00 0x00 0x00 0x00 0x00 0x00">High Grind</option>
+					<option value="0xAA 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0xAA 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Medium Grind</option>
+					<option value="0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Low Grind</option>
+					<option value="0xF0 0xF0 0xF0 0xF0 0xcc 0xcc 0xcc 0xcc 0xF0 0xF0 0xF0 0xF0 0xcc 0xcc 0xcc 0xcc">Doorbell</option>
+					<option value="0x55 0xAA 0x55 0xAA 0x55 0xAA 0x55 0xAA 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Gurgle</option>
+					<option value="0x02 0xCD 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Click</option>
+					<option value="0xFF 0x80 0x3F 0xE0 0x0F 0xF8 0x03 0xFF 0x00 0x7F 0xC0 0x8E 0x38 0xE3 0x8E 0x38">A5</option>
+				</select>
+				<button onclick="randomAudio();">Random</button>
+				<button onclick="shiftAudio(1);">&lt;</button>
+				<button onclick="shiftAudio(-1);">&gt;</button>
+				<br>
+				Duration (1/60ths of a second): <input id="time" type="text" size="4" value="30">
+				<button onclick="playAudio();">Play</button>
+				<div id="audioerror" style="color: red;"></div>
+				<h3>Waveform Blending</h3>
+				Combine this waveform with the one above.<br>
+				<textarea id="blendPattern" rows="4" cols="40" spellcheck="false" onchange="editAudioHex('blendPattern');" onkeyup="editAudioHex('blendPattern');"></textarea><br>
+				<button type="button" onclick="blendWaveform('xor');">XOR</button>
+				<button type="button" onclick="blendWaveform('and');">AND</button>
+				<button type="button" onclick="blendWaveform('or');">OR</button>
+				<button type="button" onclick="blendWaveform('not');">NOT (this pattern)</button>
+				<button type="button" onclick="swapWaveforms('blendPattern', 'audioPattern');">Swap</button>
+				<h3>Tone Generator</h3>
+				<canvas id="waveform" width="256" height="64"></canvas><br>
+				Freq. (Hz): <input id="frequency" type="text" size="4" value="440" onchange="generateWaveform();" onkeyup="generateWaveform();">
+				Cutoff: <input id="cutoff" type="text" size="4" value="128" onchange="generateWaveform();" onkeyup="generateWaveform();">
+				<button type="button" onclick="swapWaveforms('generatedPattern', 'audioPattern');">Swap</button>
+				<br><textarea id="generatedPattern" rows="4" cols="40" spellcheck="false" onchange="editAudioHex('generatedPattern');" onkeyup="editAudioHex('generatedPattern');"></textarea>
+			</div>
+		</center>
+
+		<center>
+			<textarea id="output" style="display:none;" rows="6" cols="80"></textarea>
+		</center>
+	</div>
+
+	<div id="status" class="statusbar"></div>
+
+	<div class="lightbox" id="emulator" style="display:none">
+		<div class="canv">
+			<canvas id="target" width="640" height="320"></canvas>
+		</div>
+
+		<div style="position: absolute; bottom: 20px; width: 100%;">
+			<table border="0" id="keypad" style="display: none; width: 164px; margin: auto;">
+				<tr>
+					<td class="key" id="0x1">1</td>
+					<td class="key" id="0x2">2</td>
+					<td class="key" id="0x3">3</td>
+					<td class="key" id="0xC">C</td>
+				</tr>
+				<tr>
+					<td class="key" id="0x4">4</td>
+					<td class="key" id="0x5">5</td>
+					<td class="key" id="0x6">6</td>
+					<td class="key" id="0xD">D</td>
+				</tr>
+				<tr>
+					<td class="key" id="0x7">7</td>
+					<td class="key" id="0x8">8</td>
+					<td class="key" id="0x9">9</td>
+					<td class="key" id="0xE">E</td>
+				</tr>
+				<tr>
+					<td class="key" id="0xA">A</td>
+					<td class="key" id="0x0">0</td>
+					<td class="key" id="0xB">B</td>
+					<td class="key" id="0xF">F</td>
+				</tr>
+			</table>
+		</div>
+
+		<div class="buttons">
+			<button
+				title="close"
+				onclick="keyUp({keyCode:27})"
+            >Close</button>
+			<button
+				title="toggle keypad"
+				onclick="toggleKeypad()"
+				style="padding-left: 10px;"
+            >Toggle keypad</button>
+			<button
+				title="save a screenshot"
+				onclick="saveScreenshot()"
+				style="padding-left: 10px;"
+			>Save a screenshot</button>
+			<button
+				id="continueButton"
+				onclick="clearBreakpoint()"
+				style="padding-left: 10px; display:none;"
+			>Continue</button>
+		</div>
+
+		<div class="debugger" id="registerView" style="display:none">
+			register display.
+		</div>
+	</div>
+
+	<button class="lightbox" style="display:none" id="decompileWork">
+        Decompile
+	</button>
+<script>
+////////////////////////////////////
+//
+//   Tokenization:
+//
+////////////////////////////////////
+
+function parse(token) {
+	var num = parseNumber(token);
+	return isNaN(num) ? token : num;
+}
+
+function parseNumber(token) {
+
+	// Check if this token is a valid binary number
+	if (/^[+\-]?0b[01]+$/.test(token)) {
+
+		var bitstring;
+		var isNegative = (token.indexOf('-') == 0);
+
+		// Check for any leading +/- sign character
+		if(isNegative || (token.indexOf('+') == 0)) {
+			// Remove sign character and 0b- prefix
+			bitstring = token.slice(3);
+		} else {
+			// Remove 0b- prefix
+			bitstring = token.slice(2);
+		}
+
+		var value = parseInt(bitstring, 2);
+		return (isNegative) ? -value : value;
+	}
+
+	// Check if this token is a valid hexadecimal number
+	if (/^[+\-]?0x[0-9a-f]+$/i.test(token)) {
+		return parseInt(token, 16);
+	}
+
+	// Check if this token is a valid decimal number
+	if (/^[+\-]?[0-9]+$/.test(token)) {
+		return parseInt(token, 10);
+	}
+
+	return NaN;
+}
+
+function tokenize(text) {
+	var ret   = [];
+	var index = 0;
+	var token = "";
+	var tokenStart = -1;
+
+	while(index < text.length) {
+		var c = text.charAt(index++);
+		if (c == '#') {
+			if (token.length > 0) {
+				ret.push([ parse(token), tokenStart, index ]);
+				tokenStart = -1;
+			}
+			token = "";
+			while(c != '\n' && index < text.length) {
+				c = text.charAt(index++);
+			}
+		}
+		else if (" \t\n\r\v".indexOf(c) >= 0) {
+			if (token.length > 0) {
+				ret.push([ parse(token), tokenStart, index ]);
+				tokenStart = -1;
+			}
+			token = "";
+		}
+		else {
+			if (tokenStart == -1) { tokenStart = index; }
+			token += c;
+		}
+	}
+	if (token.length > 0) {
+		ret.push([ parse(token), tokenStart, index+1]);
+	}
+	return ret;
+}
+
+////////////////////////////////////
+//
+//   The Octo Compiler:
+//
+////////////////////////////////////
+
+function DebugInfo(source) {
+	this.lines = source.split('\n');
+	this.posToLine = function(pos) {
+		var i;
+		for (i = 0; i < this.lines.length; i++) {
+			pos -= this.lines[i].length + 1;
+			if (pos <= 0)
+				break;
+		}
+		return i;
+	}
+	this.locs = {}; // map<addr, line>
+	this.mapAddr = function(addr, pos) {
+		this.locs[addr] = this.posToLine(pos);
+	}
+}
+
+function Compiler(source) {
+	this.rom       = []; // list<int>
+	this.dbginfo   = new DebugInfo(source);
+	this.loops     = []; // stack<[addr, marker]>
+	this.branches  = []; // stack<[addr, marker, type]>
+	this.whiles    = []; // stack<int>
+	this.dict      = {}; // map<name, addr>
+	this.protos    = {}; // map<name, list<addr>>
+	this.longproto = {}; // set<name, true>
+	this.aliases   = {}; // map<name, registernum>
+	this.constants = {}; // map<name, token>
+	this.hasmain = true;
+	this.schip = false;
+	this.xo = false;
+	this.breakpoints = {}; // map<address, name>
+	this.hereaddr = 0x200;
+
+	this.pos = null;
+
+	this.data = function(a) {
+		if (typeof this.rom[this.hereaddr-0x200] != "undefined") {
+			throw "Data overlap. Address "+hexFormat(this.hereaddr)+" has already been defined.";
+		}
+		this.rom[this.hereaddr-0x200] = (a & 0xFF);
+		if (this.pos) this.dbginfo.mapAddr(this.hereaddr, this.pos[1]);
+		this.hereaddr++;
+	}
+
+	this.tokens = tokenize(source);
+	this.next = function()    { this.pos = this.tokens[0]; this.tokens.splice(0, 1); return this.pos[0]; }
+	this.peek = function()    { return this.tokens[0][0]; }
+	this.here = function()    { return this.hereaddr; }
+	this.inst = function(a,b) { this.data(a); this.data(b); }
+
+	this.immediate = function(op, nnn) {
+		this.inst(op | ((nnn >> 8) & 0xF), (nnn & 0xFF));
+	}
+
+	this.fourop = function(op, x, y, n) {
+		this.inst((op << 4) | x, (y << 4) | (n & 0xF));
+	}
+
+	this.jump = function(addr, dest) {
+		this.rom[addr - 0x200] = (0x10 | ((dest >> 8) & 0xF));
+		this.rom[addr - 0x1FF] = (dest & 0xFF);
+	}
+
+	this.isRegister = function(name) {
+		if (!name && (name != 0)) { name = this.peek(); }
+		if (typeof name != "string") { return false; }
+		if (name in this.aliases) { return true; }
+		name = name.toUpperCase();
+		if (name.length != 2) { return false; }
+		if (name[0] != 'V') { return false; }
+		return "0123456789ABCDEF".indexOf(name[1]) >= 0;
+	}
+
+	this.register = function(name) {
+		if (!name) { name = this.next(); }
+		if (!this.isRegister(name)) {
+			throw "Expected register, got '" + name + "'";
+		}
+		if (name in this.aliases) {
+			return this.aliases[name];
+		}
+		name = name.toUpperCase();
+		return "0123456789ABCDEF".indexOf(name[1]);
+	}
+
+	this.expect = function(token) {
+		var thing = this.next();
+		if (thing != token) { throw "Expected '" + token + "', got '" + thing + "'!"; }
+	}
+
+	this.constantValue = function() {
+		var number = this.next();
+		if (typeof number != "number") {
+			if (number in this.protos) {
+				throw "Constants cannot refer to the address of a forward declaration.";
+			}
+			else if (number in this.dict) {
+				number = this.dict[number];
+			}
+			else if (number in this.constants) {
+				number = this.constants[number];
+			}
+			else { throw "Undefined name '"+number+"'."; }
+		}
+		return number;
+	}
+
+	this.reservedNames = {
+		":=":true, "|=":true, "&=":true, "^=":true, "-=":true, "=-":true, "+=":true,
+		">>=":true, "<<=":true, "==":true, "!=":true, "<":true, ">":true,
+		"<=":true, ">=":true, "key":true, "-key":true, "hex":true, "bighex":true,
+		"random":true, "delay":true, ":":true, ":next":true, ":unpack":true,
+		":breakpoint":true, ":proto":true, ":alias":true, ":const":true,
+		":org":true, ";":true, "return":true, "clear":true, "bcd":true,
+		"save":true, "load":true, "buzzer":true, "if":true, "then":true,
+		"begin":true, "else":true, "end":true, "jump":true, "jump0":true,
+		"native":true, "sprite":true, "loop":true, "while":true, "again":true,
+		"scroll-down":true, "scroll-right":true, "scroll-left":true,
+		"lores":true, "hires":true, "loadflags":true, "saveflags":true, "i":true,
+		"audio":true, "plane":true, "scroll-up":true
+	};
+
+	this.checkName = function(name, kind) {
+		if (name in this.reservedNames) {
+			throw "The name '"+name+"' is reserved and cannot be used for a "+kind+".";
+		}
+		return name;
+	}
+
+	this.veryWideValue = function() {
+		// i := long NNNN
+		var nnnn = this.next();
+		if (typeof nnnn != "number") {
+			if (nnnn in this.constants) {
+				nnnn = this.constants[nnnn];
+			}
+			else if (nnnn in this.protos) {
+				this.protos[nnnn].push(this.here()+2);
+				this.longproto[this.here()+2] = true;
+				nnnn = 0;
+			}
+			else if (nnnn in this.dict) {
+				nnnn = this.dict[nnnn];
+			}
+			else {
+				this.protos[this.checkName(nnnn, "label")] = [this.here()+2];
+				this.longproto[this.here()+2] = true;
+				nnnn = 0;
+			}
+		}
+		if ((typeof nnnn != "number") || (nnnn < 0) || (nnnn > 0xFFFF)) {
+			throw "Value '"+nnnn+"' cannot fit in 16 bits!";
+		}
+		return (nnnn & 0xFFFF);
+	}
+
+	this.wideValue = function(nnn) {
+		// can be forward references.
+		// call, jump, jump0, i:=
+		if (!nnn & (nnn != 0)) { nnn = this.next(); }
+		if (typeof nnn != "number") {
+			if (nnn in this.constants) {
+				nnn = this.constants[nnn];
+			}
+			else if (nnn in this.protos) {
+				this.protos[nnn].push(this.here());
+				nnn = 0;
+			}
+			else if (nnn in this.dict) {
+				nnn = this.dict[nnn];
+			}
+			else {
+				this.protos[this.checkName(nnn, "label")] = [this.here()];
+				nnn = 0;
+			}
+		}
+		if ((typeof nnn != "number") || (nnn < 0) || (nnn > 0xFFF)) {
+			throw "Value '"+nnn+"' cannot fit in 12 bits!";
+		}
+		return (nnn & 0xFFF);
+	}
+
+	this.shortValue = function(nn) {
+		// vx:=, vx+=, vx==, v!=, random
+		if (!nn && (nn != 0)) { nn = this.next(); }
+		if (typeof nn != "number") {
+			if (nn in this.constants) { nn = this.constants[nn]; }
+			else { throw "Undefined name '"+nn+"'."; }
+		}
+		// silently trim negative numbers, but warn
+		// about positive numbers which are too large:
+		if ((typeof nn != "number") || (nn < -128) || (nn > 255)) {
+			throw "Argument '"+nn+"' does not fit in a byte- must be in range [-128, 255].";
+		}
+		return (nn & 0xFF);
+	}
+
+	this.tinyValue = function() {
+		// sprite length, unpack high nybble
+		var n = this.next();
+		if (typeof n != "number") {
+			if (n in this.constants) { n = this.constants[n]; }
+			else { throw "Undefined name '"+n+"'."; }
+		}
+		if ((typeof n != "number") || (n < 0) || (n > 15)) {
+			throw "Invalid argument '"+n+"'; must be in range [0,15].";
+		}
+		return (n & 0xF);
+	}
+
+	this.conditional = function(negated) {
+		var reg   = this.register();
+		var token = this.next();
+		var compTemp = this.aliases["compare-temp"];
+		if (negated) {
+			if      (token == "=="  ) { token = "!="; }
+			else if (token == "!="  ) { token = "=="; }
+			else if (token == "key" ) { token = "-key"; }
+			else if (token == "-key") { token = "key"; }
+			else if (token == "<"   ) { token = ">="; }
+			else if (token == ">"   ) { token = "<="; }
+			else if (token == ">="  ) { token = "<"; }
+			else if (token == "<="  ) { token = ">"; }
+		}
+		if (token == "==") {
+			if (this.isRegister()) { this.inst(0x90 | reg, this.register() << 4); }
+			else                   { this.inst(0x40 | reg, this.shortValue()); }
+		}
+		else if (token == "!=") {
+			if (this.isRegister()) { this.inst(0x50 | reg, this.register() << 4); }
+			else                   { this.inst(0x30 | reg, this.shortValue()); }
+		}
+		else if (token == "key") {
+			this.inst(0xE0 | reg, 0xA1);
+		}
+		else if (token == "-key") {
+			this.inst(0xE0 | reg, 0x9E);
+		}
+		else if (token == ">") {
+			if (this.isRegister()) { this.fourop(0x8, compTemp, this.register(), 0x0); }
+			else                   { this.inst  (0x60 | compTemp, this.shortValue()); }
+			this.fourop(0x8, compTemp, reg, 0x5); // ve -= v1
+			this.inst(0x3F, 1);                   // if vf == 1 then ...
+		}
+		else if (token == "<") {
+			if (this.isRegister()) { this.fourop(0x8, compTemp, this.register(), 0x0); }
+			else                   { this.inst  (0x60 | compTemp, this.shortValue()); }
+			this.fourop(0x8, compTemp, reg, 0x7); // ve =- v1
+			this.inst(0x3F, 1);                   // if vf == 1 then ...
+		}
+		else if (token == ">=") {
+			if (this.isRegister()) { this.fourop(0x8, compTemp, this.register(), 0x0); }
+			else                   { this.inst  (0x60 | compTemp, this.shortValue()); }
+			this.fourop(0x8, compTemp, reg, 0x7); // ve =- v1
+			this.inst(0x4F, 1);                   // if vf != 1 then ...
+		}
+		else if (token == "<=") {
+			if (this.isRegister()) { this.fourop(0x8, compTemp, this.register(), 0x0); }
+			else                   { this.inst  (0x60 | compTemp, this.shortValue()); }
+			this.fourop(0x8, compTemp, reg, 0x5); // ve -= v1
+			this.inst(0x4F, 1);                   // if vf != 1 then ...
+		}
+		else {
+			throw "Conditional flag expected, got '" + token + "!";
+		}
+	}
+
+	this.controlToken = function() {
+		// ignore a condition
+		var op = this.tokens[1][0];
+		var index = 3;
+		if (op == "key" || op == "-key") { index = 2; }
+		if (index >= this.tokens.length) { index = this.tokens.length-1; }
+		return this.tokens[index];
+	}
+
+	this.iassign = function(token) {
+		if (token == ":=") {
+			var o = this.next();
+			if (o == "hex") { this.inst(0xF0 | this.register(), 0x29); }
+			else if (o == "bighex") {
+				this.schip = true;
+				this.inst(0xF0 | this.register(), 0x30);
+			}
+			else if (o == "long") {
+				this.xo = true;
+				var addr = this.veryWideValue();
+				this.inst(0xF0, 0x00);
+				this.inst((addr>>8)&0xFF, addr&0xFF);
+			}
+			else { this.immediate(0xA0, this.wideValue(o)); }
+		}
+		else if (token == "+=") {
+			this.inst(0xF0 | this.register(), 0x1E);
+		}
+		else {
+			throw "The operator '"+token+"' cannot target the i register.";
+		}
+	}
+
+	this.vassign = function(reg, token) {
+		if (token == ":=") {
+			var o = this.next();
+			if (this.isRegister(o)) { this.fourop(0x8, reg, this.register(o), 0x0); }
+			else if (o == "random") { this.inst(0xC0 | reg, this.shortValue()); }
+			else if (o == "key")    { this.inst(0xF0 | reg, 0x0A); }
+			else if (o == "delay")  { this.inst(0xF0 | reg, 0x07); }
+			else                    { this.inst(0x60 | reg, this.shortValue(o)); }
+		}
+		else if ("+=" == token) {
+			if (this.isRegister()) { this.fourop(0x8, reg, this.register(), 0x4); }
+			else                   { this.inst(0x70 | reg, this.shortValue()); }
+		}
+		else if ("|="  == token) { this.fourop(0x8, reg, this.register(), 0x1); }
+		else if ("&="  == token) { this.fourop(0x8, reg, this.register(), 0x2); }
+		else if ("^="  == token) { this.fourop(0x8, reg, this.register(), 0x3); }
+		else if ("-="  == token) { this.fourop(0x8, reg, this.register(), 0x5); }
+		else if ("=-"  == token) { this.fourop(0x8, reg, this.register(), 0x7); }
+		else if (">>=" == token) { this.fourop(0x8, reg, this.register(), 0x6); }
+		else if ("<<=" == token) { this.fourop(0x8, reg, this.register(), 0xE); }
+		else {
+			throw "Unrecognized operator '"+token+"'.";
+		}
+	}
+
+	this.resolveLabel = function(offset) {
+		var target = (this.here() + offset);
+		var label = this.checkName(this.next(), "label");
+		if ((target == 0x202) && (label == "main")) {
+			this.hasmain = false;
+			this.rom = [];
+			this.hereaddr = 0x200;
+			target = this.here();
+		}
+		if (label in this.dict) { throw "The name '"+label+"' has already been defined."; }
+		this.dict[label] = target;
+
+		if (label in this.protos) {
+			for(var z = 0; z < this.protos[label].length; z++) {
+				var addr  = this.protos[label][z];
+				if (this.longproto[addr]) {
+					// i := long target
+					this.rom[addr - 0x200] = (target >> 8) & 0xFF;
+					this.rom[addr - 0x1FF] = (target & 0xFF);
+				}
+				else if ((this.rom[addr - 0x200] & 0xF0) == 0x60) {
+					// :unpack target
+					if ((target & 0xFFF) != target)
+						throw "Value '" + target + "' for label '" + label + "' cannot not fit in 12 bits!";
+					this.rom[addr - 0x1FF] = (this.rom[addr - 0x1FF] & 0xF0) | ((target >> 8)&0xF);
+					this.rom[addr - 0x1FD] = (target & 0xFF);
+				}
+				else {
+					if ((target & 0xFFF) != target)
+						throw "Value '" + target + "' for label '" + label + "' cannot not fit in 12 bits!";
+					this.rom[addr - 0x200] = (this.rom[addr - 0x200] & 0xF0) | ((target >> 8)&0xF);
+					this.rom[addr - 0x1FF] = (target & 0xFF);
+				}
+			}
+			delete this.protos[label];
+		}
+	}
+
+	this.instruction = function(token) {
+		if (token == ":") { this.resolveLabel(0); }
+		else if (token == ":next") { this.resolveLabel(1); }
+		else if (token == ":unpack") {
+			var v = this.tinyValue();
+			var a = this.wideValue();
+			this.inst(0x60 | this.aliases["unpack-hi"], (v << 4) | (a >> 8));
+			this.inst(0x60 | this.aliases["unpack-lo"], a);
+		}
+		else if (token == ":breakpoint") { this.breakpoints[this.here()] = this.next(); }
+		else if (token == ":proto")  { this.next(); } // deprecated.
+		else if (token == ":alias")  { this.aliases[this.checkName(this.next(), "alias")] = this.register(); }
+		else if (token == ":const")  {
+			var name = this.checkName(this.next(), "constant");
+			if (name in this.constants) { throw "The name '"+name+"' has already been defined."; }
+			this.constants[name] = this.constantValue();
+		}
+		else if (token == ":org")    { this.hereaddr = this.constantValue(); }
+		else if (token == ";")       { this.inst(0x00, 0xEE); }
+		else if (token == "return")  { this.inst(0x00, 0xEE); }
+		else if (token == "clear")   { this.inst(0x00, 0xE0); }
+		else if (token == "bcd")     { this.inst(0xF0 | this.register(), 0x33); }
+		else if (token == "save")    {
+			var reg = this.register();
+			if (this.tokens.length > 0 && this.peek() == "-") {
+				this.expect("-");
+				this.xo = true;
+				this.inst(0x50 | reg, (this.register() << 4) | 0x02);
+			}
+			else {
+				this.inst(0xF0 | reg, 0x55);
+			}
+		}
+		else if (token == "load") {
+			var reg = this.register();
+			if (this.tokens.length > 0 && this.peek() == "-") {
+				this.expect("-");
+				this.xo = true;
+				this.inst(0x50 | reg, (this.register() << 4) | 0x03);
+			}
+			else {
+				this.inst(0xF0 | reg, 0x65);
+			}
+		}
+		else if (token == "delay")   { this.expect(":="); this.inst(0xF0 | this.register(), 0x15); }
+		else if (token == "buzzer")  { this.expect(":="); this.inst(0xF0 | this.register(), 0x18); }
+		else if (token == "if") {
+			var control = this.controlToken();
+			if (control[0] == "then") {
+				this.conditional(false);
+				this.expect("then");
+			}
+			else if (control[0] == "begin") {
+				this.conditional(true);
+				this.expect("begin");
+				this.branches.push([this.here(), this.pos, "begin"]);
+				this.inst(0x00, 0x00);
+			}
+			else {
+				this.pos = control;
+				throw "Expected 'then' or 'begin'.";
+			}
+		}
+		else if (token == "else") {
+			if (this.branches.length < 1) {
+				throw "This 'else' does not have a matching 'begin'.";
+			}
+			this.jump(this.branches.pop()[0], this.here()+2);
+			this.branches.push([this.here(), this.pos, "else"]);
+			this.inst(0x00, 0x00);
+		}
+		else if (token == "end") {
+			if (this.branches.length < 1) {
+				throw "This 'end' does not have a matching 'begin'.";
+			}
+			this.jump(this.branches.pop()[0], this.here());
+		}
+		else if (token == "jump0")   { this.immediate(0xB0, this.wideValue()); }
+		else if (token == "jump")    { this.immediate(0x10, this.wideValue()); }
+		else if (token == "native")  { this.immediate(0x00, this.wideValue()); }
+		else if (token == "sprite")  {
+			var r1 = this.register();
+			var r2 = this.register();
+			var size = this.tinyValue();
+			if (size == 0) { this.schip = true; }
+			this.inst(0xD0 | r1, (r2 << 4) | size);
+		}
+		else if (token == "loop") {
+			this.loops.push([this.here(), this.pos]);
+			this.whiles.push(null);
+		}
+		else if (token == "while") {
+			if (this.loops.length < 1) {
+				throw "This 'while' is not within a loop.";
+			}
+			this.conditional(true);
+			this.whiles.push(this.here());
+			this.immediate(0x10, 0);
+		}
+		else if (token == "again") {
+			if (this.loops.length < 1) {
+				throw "This 'again' does not have a matching 'loop'.";
+			}
+			this.immediate(0x10, this.loops.pop()[0]);
+			while (this.whiles[this.whiles.length - 1] != null) {
+				this.jump(this.whiles.pop(), this.here());
+			}
+			this.whiles.pop();
+		}
+		else if (token == "plane") {
+			var plane = this.tinyValue();
+			if (plane > 3) { throw "the plane bitmask must be [0, 3]."; }
+			this.xo = true;
+			this.inst(0xF0 | plane, 0x01);
+		}
+		else if (token == "audio") {
+			this.xo = true;
+			this.inst(0xF0, 0x02);
+		}
+		else if (token == "scroll-down")  { this.schip = true; this.inst(0x00, 0xC0 | this.tinyValue()); }
+		else if (token == "scroll-up")    { this.xo    = true; this.inst(0x00, 0xD0 | this.tinyValue()); }
+		else if (token == "scroll-right") { this.schip = true; this.inst(0x00, 0xFB); }
+		else if (token == "scroll-left")  { this.schip = true; this.inst(0x00, 0xFC); }
+		else if (token == "exit")         { this.schip = true; this.inst(0x00, 0xFD); }
+		else if (token == "lores")        { this.schip = true; this.inst(0x00, 0xFE); }
+		else if (token == "hires")        { this.schip = true; this.inst(0x00, 0xFF); }
+		else if (token == "saveflags") {
+			var flags = this.register();
+			if (flags > 7) { throw "saveflags argument must be v[0,7]."; }
+			this.schip = true;
+			this.inst(0xF0 | flags, 0x75);
+		}
+		else if (token == "loadflags") {
+			var flags = this.register();
+			if (flags > 7) { throw "loadflags argument must be v[0,7]."; }
+			this.schip = true;
+			this.inst(0xF0 | flags, 0x85);
+		}
+		else if (token == "i") {
+			this.iassign(this.next());
+		}
+		else if (this.isRegister(token)) {
+			this.vassign(this.register(token), this.next());
+		}
+		else {
+			this.immediate(0x20, this.wideValue(token));
+		}
+	}
+
+	this.go = function() {
+		this.aliases["compare-temp"] = 0xE;
+		this.aliases["unpack-hi"]    = 0x0;
+		this.aliases["unpack-lo"]    = 0x1;
+
+		this.inst(0, 0); // reserve a jump slot
+		while(this.tokens.length > 0) {
+			if (typeof this.peek() == "number") {
+				var nn = this.next();
+				if (nn < -128 || nn > 255) {
+					throw "Literal value '"+nn+"' does not fit in a byte- must be in range [-128, 255].";
+				}
+				this.data(nn);
+			}
+			else {
+				this.instruction(this.next());
+			}
+		}
+		if (this.hasmain == true) {
+			// resolve the main branch
+			this.jump(0x200, this.wideValue("main"));
+		}
+		var keys = [];
+		for (var k in this.protos) { keys.push(k); }
+		if (keys.length > 0) {
+			throw "Undefined names: " + keys;
+		}
+		if (this.loops.length > 0) {
+			this.pos = this.loops[0][1];
+			throw "This 'loop' does not have a matching 'again'.";
+		}
+		if (this.branches.length > 0) {
+			this.pos = this.branches[0][1];
+			throw "This '"+this.branches[0][2]+"' does not have a matching 'end'.";
+		}
+		for(var index = 0; index < this.rom.length; index++) {
+			if (typeof this.rom[index] == "undefined") { this.rom[index] = 0x00; }
+		}
+	}
+}
+
+this.Compiler = Compiler;
+
+////////////////////////////////////
+//
+//   Decompiler:
+//
+//   A tracing decompiler and static
+//   analyzer for Chip8 programs.
+//
+////////////////////////////////////
+
+"use strict";
+
+var LOAD_STORE_QUIRKS = false; // ignore i increment with loads
+var SHIFT_QUIRKS      = false; // shift vx in place, ignore vy
+var VF_ORDER_QUIRKS   = false; // arithmetic results write to vf after status flag
+
+var regNames = [
+	0x0,0x1,0x2,0x3,0x4,0x5,0x6,0x7,0x8,0x9,0xA,0xB,0xC,0xD,0xE,0xF,
+	'f0','f1','f2','f3','f4','f5','f6','f7','i','rets','plane'
+];
+
+// global state:
+var program  = []; // chip8 memory
+var reaching = {}; // map<address, map<register, set<int>>>
+var fringe   = []; // addresses left to explore
+var romsize  = 0;  // size of rom in bytes
+
+// analysis:
+var type        = {}; // map<address, {code | data | smc}>
+var labels      = {}; // map<address, list<reference addrs>>
+var subroutines = {}; // map<address, list<caller addrs>>
+var natives     = {}; // map<address, list<native caller addrs>>
+var lnames      = {}; // map<address, name>
+var snames      = {}; // map<address, name>
+var nnames      = {}; // map<address, name>
+
+function formatInstruction(a, nn) {
+	// convert a pair of bytes representing an instruction
+	// into a string of the equivalent octo statement.
+	var op  = (a <<  8) | nn;
+	var o   = (a >>  4) & 0xF;
+	var x   = (a      ) & 0xF;
+	var y   = (nn >> 4) & 0xF;
+	var n   = (nn     ) & 0xF;
+	var nnn = op & 0xFFF;
+
+	var vx = "v" + (x.toString(16).toUpperCase());
+	var vy = "v" + (y.toString(16).toUpperCase());
+
+	if (a  == 0x00 && y == 0xC) { return "scroll-down " + numericFormat(n); } // schip
+	if (a  == 0x00 && y == 0xD) { return "scroll-up " + numericFormat(n); } // xo-chip
+	if (op == 0x00E0)           { return "clear"; }
+	if (op == 0x00EE)           { return "return"; }
+	if (op == 0x00FB)           { return "scroll-right"; } // schip
+	if (op == 0x00FC)           { return "scroll-left"; } // schip
+	if (op == 0x00FD)           { return "exit"; } // schip
+	if (op == 0x00FE)           { return "lores"; } // schip
+	if (op == 0x00FF)           { return "hires"; } // schip
+	if (o == 0x1)               { return "jump " + lnames[nnn]; }
+	if (o == 0x2)               { return snames[nnn]; }
+	if (o == 0x3)               { return "if " + vx + " != " + numericFormat(nn) + " then"; }
+	if (o == 0x4)               { return "if " + vx + " == " + numericFormat(nn) + " then"; }
+	if (o == 0x5 && n == 0x0)   { return "if " + vx + " != " + vy + " then"; }
+	if (o == 0x5 && n == 0x2)   { return "save " + vx + " - " + vy; } // xo-chip
+	if (o == 0x5 && n == 0x3)   { return "load " + vx + " - " + vy; } // xo-chip
+	if (o == 0x6)               { return vx + " := " + numericFormat(nn); }
+	if (o == 0x7)               { return vx + " += " + numericFormat(nn); }
+	if (o == 0x8 && n == 0x0)   { return vx + " := " + vy; }
+	if (o == 0x8 && n == 0x1)   { return vx + " |= " + vy; }
+	if (o == 0x8 && n == 0x2)   { return vx + " &= " + vy; }
+	if (o == 0x8 && n == 0x3)   { return vx + " ^= " + vy; }
+	if (o == 0x8 && n == 0x4)   { return vx + " += " + vy; }
+	if (o == 0x8 && n == 0x5)   { return vx + " -= " + vy; }
+	if (o == 0x8 && n == 0x6)   { return vx + " >>= " + vy; }
+	if (o == 0x8 && n == 0x7)   { return vx + " =- " + vy; }
+	if (o == 0x8 && n == 0xE)   { return vx + " <<= " + vy; }
+	if (o == 0x9 && n == 0x0)   { return "if " + vx + " == " + vy + " then"; }
+	if (o == 0xA)               { return "i := " + lnames[nnn]; }
+	if (o == 0xB)               { return "jump0 " + lnames[nnn]; }
+	if (o == 0xC)               { return vx + " := random " + maskFormat(nn, 2); }
+	if (o == 0xD)               { return "sprite " + vx + " " + vy + " " + numericFormat(n); }
+	if (o == 0xE && nn == 0x9E) { return "if " + vx + " -key then"; }
+	if (o == 0xE && nn == 0xA1) { return "if " + vx + " key then"; }
+	if (op == 0xF000)           { return "i := long "; }
+	if (op == 0xF001)           { return "plane 0"; }
+	if (op == 0xF101)           { return "plane 1"; }
+	if (op == 0xF201)           { return "plane 2"; }
+	if (op == 0xF301)           { return "plane 3"; }
+	if (op == 0xF002)           { return "audio"; }
+	if (o == 0xF && nn == 0x07) { return vx + " := delay"; }
+	if (o == 0xF && nn == 0x0A) { return vx + " := key"; }
+	if (o == 0xF && nn == 0x15) { return "delay := " + vx; }
+	if (o == 0xF && nn == 0x18) { return "buzzer := " + vx; }
+	if (o == 0xF && nn == 0x1E) { return "i += " + vx; }
+	if (o == 0xF && nn == 0x29) { return "i := hex " + vx; }
+	if (o == 0xF && nn == 0x30) { return "i := bighex " + vx; } // schip
+	if (o == 0xF && nn == 0x33) { return "bcd " + vx; }
+	if (o == 0xF && nn == 0x55) { return "save " + vx; }
+	if (o == 0xF && nn == 0x65) { return "load " + vx; }
+	if (o == 0xF && nn == 0x75) { return "saveflags " + vx; } // schip
+	if (o == 0xF && nn == 0x85) { return "loadflags " + vx; } // schip
+
+	if (o == 0x0) {
+		return "native " + ((nnn in nnames) ? nnames[nnn] : hexFormat(nnn));
+	}
+	return hexFormat(a) + " " + hexFormat(nn) + " # bad opcode?";
+}
+
+function formatNative(addr, prefix) {
+	var r = "";
+	var start = addr;
+
+	while(true) {
+		if (addr in natives) {
+			r += ": " + nnames[addr] + "\n";
+		}
+		if (typeof program[addr] == "undefined") { break; }
+		if (typeof    type[addr] != "undefined") { break; }
+		r += prefix;
+
+		var op = program[addr];
+		var o  = (op >> 4) & 0xF;
+		var x  = op & 0xF;
+		var a  = program[addr+1] | 0;
+		var b  = program[addr+2] | 0;
+
+		var end = hexFormat(addr) + " : ";
+		var h1 = hexFormat(op) + "           # " + end;
+		var h2 = hexFormat(op) + " " + hexFormat(a) + "      # " + end;
+		var h3 = hexFormat(op) + " " + hexFormat(a) + " " + hexFormat(b) + " # " + end;
+		var hr = x.toString(16).toUpperCase();
+		var ha = hexFormat(a);
+		var hb = hexFormat((a << 8) | b);
+		var or = x - 1;
+		var ir = x - 7;
+
+		if (o == 0x0 && x == 0)     { addr += 1; r += h1 + "IDL"       ; } // idle
+		if (o == 0x0 && x != 0)     { addr += 1; r += h1 + "LDN  " + hr; } // load via r
+		if (o == 0x1)               { addr += 1; r += h1 + "INC  " + hr; } // increment r
+		if (o == 0x2)               { addr += 1; r += h1 + "DEC  " + hr; } // decrement r
+		if (op == 0x30)             { addr += 2; r += h2 + "BR   " + ha; } // branch always
+		if (op == 0x31)             { addr += 2; r += h2 + "BQ   " + ha; } // branch if q
+		if (op == 0x32)             { addr += 2; r += h2 + "BZ   " + ha; } // branch if zero
+		if (op == 0x33)             { addr += 2; r += h2 + "BDF  " + ha; } // branch if df
+		if (op == 0x34)             { addr += 2; r += h2 + "B1   " + ha; } // branch if flag 1
+		if (op == 0x35)             { addr += 2; r += h2 + "B2   " + ha; } // branch if flag 2
+		if (op == 0x36)             { addr += 2; r += h2 + "B3   " + ha; } // branch if flag 3
+		if (op == 0x37)             { addr += 2; r += h2 + "B4   " + ha; } // branch if flag 4
+		if (op == 0x38)             { addr += 1; r += h1 + "SKP"       ; } // skip 1 byte
+		if (op == 0x39)             { addr += 2; r += h2 + "BNQ  " + ha; } // branch if not q
+		if (op == 0x3A)             { addr += 2; r += h2 + "BNZ  " + ha; } // branch if not zero
+		if (op == 0x3B)             { addr += 2; r += h2 + "BNF  " + ha; } // branch if not df
+		if (op == 0x3C)             { addr += 2; r += h2 + "BN1  " + ha; } // branch if not flag 1
+		if (op == 0x3D)             { addr += 2; r += h2 + "BN2  " + ha; } // branch if not flag 2
+		if (op == 0x3E)             { addr += 2; r += h2 + "BN3  " + ha; } // branch if not flag 3
+		if (op == 0x3F)             { addr += 2; r += h2 + "BN4  " + ha; } // branch if not flag 4
+		if (o == 0x4)               { addr += 1; r += h1 + "LDA  " + hr; } // load and advance
+		if (o == 0x5)               { addr += 1; r += h1 + "STR  " + hr; } // store through r
+		if (op == 0x60)             { addr += 1; r += h1 + "IRX"       ; } // increment r(x)
+		if (o == 0x6 && x>0 && x<8) { addr += 1; r += h1 + "OUT  " + or; } // output r
+		if (o == 0x6 && x>7)        { addr += 1; r += h1 + "INP  " + ir; } // input r
+		if (op == 0x70)             { addr += 1; r += h1 + "RET"       ; } // return
+		if (op == 0x71)             { addr += 1; r += h1 + "DIS"       ; } // disable interrupts
+		if (op == 0x72)             { addr += 1; r += h1 + "LDXA"      ; } // load via r(x)++
+		if (op == 0x73)             { addr += 1; r += h1 + "STXD"      ; } // store via r(x)--
+		if (op == 0x74)             { addr += 1; r += h1 + "ADC"       ; } // add with carry
+		if (op == 0x75)             { addr += 1; r += h1 + "SDB"       ; } // sub from m with borrow
+		if (op == 0x76)             { addr += 1; r += h1 + "SHRC"      ; } // shift right with carry
+		if (op == 0x77)             { addr += 1; r += h1 + "SMB"       ; } // sub m with borrow
+		if (op == 0x78)             { addr += 1; r += h1 + "SAV"       ; } // save t
+		if (op == 0x79)             { addr += 1; r += h1 + "MARK"      ; } // save x/p in t
+		if (op == 0x7A)             { addr += 1; r += h1 + "REQ"       ; } // reset q
+		if (op == 0x7B)             { addr += 1; r += h1 + "SEQ"       ; } // set q
+		if (op == 0x7C)             { addr += 2; r += h2 + "ADCI " + ha; } // add with carry imm
+		if (op == 0x7D)             { addr += 2; r += h2 + "SDBI " + ha; } // sub with borrow imm
+		if (op == 0x7E)             { addr += 1; r += h1 + "SHLC"      ; } // shift left with carry
+		if (op == 0x7F)             { addr += 2; r += h2 + "SMBI " + ha; } // sub m with borrow imm
+		if (o == 0x8)               { addr += 1; r += h1 + "GLO  " + hr; } // get low byte of r
+		if (o == 0x9)               { addr += 1; r += h1 + "GHI  " + hr; } // get high byte of r
+		if (o == 0xA)               { addr += 1; r += h1 + "PLO  " + hr; } // put in low byte of r
+		if (o == 0xB)               { addr += 1; r += h1 + "PHI  " + hr; } // put in high byte of r
+		if (op == 0xC0)             { addr += 3; r += h3 + "LBR  " + hb; } // lbranch always
+		if (op == 0xC1)             { addr += 3; r += h3 + "LBQ  " + hb; } // lbranch if q
+		if (op == 0xC2)             { addr += 3; r += h3 + "LBZ  " + hb; } // lbranch if zero
+		if (op == 0xC3)             { addr += 3; r += h3 + "LBDF " + hb; } // lbranch if df
+		if (op == 0xC4)             { addr += 1; r += h1 + "NOP"       ; } // noop
+		if (op == 0xC5)             { addr += 1; r += h1 + "LSNQ"      ; } // lskip if not q
+		if (op == 0xC6)             { addr += 1; r += h1 + "LSNZ"      ; } // lskip if not zero
+		if (op == 0xC7)             { addr += 1; r += h1 + "LSNF"      ; } // lskip if not df
+		if (op == 0xC8)             { addr += 1; r += h1 + "LSKP"      ; } // lskip always
+		if (op == 0xC9)             { addr += 3; r += h3 + "LBNQ " + hb; } // lbranch if not q
+		if (op == 0xCA)             { addr += 3; r += h3 + "LBNZ " + hb; } // lbranch if not zero
+		if (op == 0xCB)             { addr += 3; r += h3 + "LBNF " + hb; } // lbranch if not df
+		if (op == 0xCC)             { addr += 1; r += h1 + "LSIE"      ; } // lskip if interrupts
+		if (op == 0xCD)             { addr += 1; r += h1 + "LSQ"       ; } // lskip if q
+		if (op == 0xCE)             { addr += 1; r += h1 + "LSZ"       ; } // lskip if zero
+		if (op == 0xCF)             { addr += 1; r += h1 + "LSDF"      ; } // lskip if df
+		if (o == 0xD)               { addr += 1; r += h1 + "SEP  " + hr; } // set p
+		if (o == 0xE)               { addr += 1; r += h1 + "SEX  " + hr; } // set x
+		if (op == 0xF0)             { addr += 1; r += h1 + "LDX"       ; } // load via r(x)
+		if (op == 0xF1)             { addr += 1; r += h1 + "OR"        ; } // or
+		if (op == 0xF2)             { addr += 1; r += h1 + "AND"       ; } // and
+		if (op == 0xF3)             { addr += 1; r += h1 + "XOR"       ; } // xor
+		if (op == 0xF4)             { addr += 1; r += h1 + "ADD"       ; } // add
+		if (op == 0xF5)             { addr += 1; r += h1 + "SD"        ; } // sub from m
+		if (op == 0xF6)             { addr += 1; r += h1 + "SHR"       ; } // shift right
+		if (op == 0xF7)             { addr += 1; r += h1 + "SM"        ; } // sub m
+		if (op == 0xF8)             { addr += 2; r += h2 + "LDI  " + ha; } // load imm
+		if (op == 0xF9)             { addr += 2; r += h2 + "ORI  " + ha; } // or imm
+		if (op == 0xFA)             { addr += 2; r += h2 + "ANI  " + ha; } // and imm
+		if (op == 0xFB)             { addr += 2; r += h2 + "XRI  " + ha; } // xor imm
+		if (op == 0xFC)             { addr += 2; r += h2 + "ADI  " + ha; } // add imm
+		if (op == 0xFD)             { addr += 2; r += h2 + "SDI  " + ha; } // sub from m imm
+		if (op == 0xFE)             { addr += 1; r += h1 + "SHL"       ; } // shift left
+		if (op == 0xFF)             { addr += 2; r += h2 + "SMI  " + ha; } // sub m imm
+
+		r += "\n";
+
+		if (o == 0xD) { break; } // SEP is a context switch, effectively a return
+	}
+	return [(addr - start), r + "\n"];
+}
+
+function copyReachingSet(source) {
+	var ret = {};
+	for(var z = 0; z < regNames.length; z++) {
+		var register = regNames[z];
+		ret[register] = {};
+		var values = Object.keys(source[register]);
+		for(var vindex = 0; vindex < values.length; vindex++) {
+			ret[register][values[vindex]] = true;
+		}
+	}
+	return ret;
+}
+
+function singleResult(address) {
+	// is this an arithmetic instruction which
+	// yields a single calculated result?
+	var op = program[address] & 0xF0;
+	if (op != 0x70 && op != 0x80) { return ""; }
+
+	// conveniently, the instructions we care about
+	// always use the second nybble as the target register:
+	var r = program[address] & 0xF;
+
+	// we only want situations where the target
+	// register has a single resulting value.
+	// reference the next instruction's reaching set
+	// to obtain this instruction's output.
+	var vals = Object.keys(reaching[address + 2][r]);
+	if (vals.length != 1) { return ""; }
+
+	return " # result is always "+numericFormat(parseInt(vals[0]));
+}
+
+function apply(address) {
+	// apply this instruction to the reaching set
+	// producing a successor reaching set.
+
+	// flag this address as executable
+	function setType(address, desired) {
+		var t = type[address];
+		if (desired == "code" && t == "smc" ) { return; }
+		if (desired == "data" && t == "smc" ) { return; }
+		if (desired == "code" && t == "data") { desired = "smc"; }
+		if (desired == "data" && t == "code") { desired = "smc"; }
+		type[address] = desired;
+	}
+	setType(address,     "code");
+	setType(address + 1, "code");
+
+	// start with a deep copy of the source reaching set:
+	var ret = copyReachingSet(reaching[address]);
+
+	// decode the instruction:
+	var a   = program[address];
+	var nn  = program[address+1];
+	var op  = (a <<  8) | nn;
+	var o   = (a >>  4) & 0xF;
+	var x   = (a      ) & 0xF;
+	var y   = (nn >> 4) & 0xF;
+	var n   = (nn     ) & 0xF;
+	var nnn = op & 0xFFF;
+
+	// log label and subroutine references:
+	if (op == 0xF000) {
+		var nnnn = ((program[address+2] << 8) | (program[address+3])) & 0xFFFF;
+		ret['i'] = isingle(nnnn);
+		setType(address + 2, "code");
+		setType(address + 3, "code");
+		if (typeof labels[nnnn] == "undefined") { labels[nnnn] = []; }
+		if (labels[nnnn].indexOf(address) == -1) { labels[nnnn].push(address); }
+	}
+	if (o == 0x1 || o == 0xA || o == 0xB) {
+		if (typeof labels[nnn] == "undefined") { labels[nnn] = []; }
+		if (labels[nnn].indexOf(address) == -1) { labels[nnn].push(address); }
+	}
+	if (o == 0x2) {
+		if (typeof subroutines[nnn] == "undefined") { subroutines[nnn] = []; }
+		if (subroutines[nnn].indexOf(address) == -1) { subroutines[nnn].push(address); }
+	}
+	if (o == 0x0 && x != 0x0) {
+		if (typeof natives[nnn] == "undefined") { natives[nnn] = []; }
+		if (natives[nnn].indexOf(address) == -1) { natives[nnn].push(address); }
+	}
+
+	// helper routines:
+	function iota(max) {
+		var i = {};
+		for(var z = 0; z <= max; z++) { i[z] = true; }
+		return i;
+	}
+	function maskedrand() {
+		var i = {};
+		for(var z = 0; z <= 0xFF; z++) { i[z & nn] = true; }
+		return i;
+	}
+	function single(value) {
+		var s = {};
+		s[value] = true;
+		return s;
+	}
+	function unary(unop) {
+		var r = {};
+		for(var a in ret[x]) {
+			r[unop(parseInt(a)) & 0xFF] = true
+		}
+		return r;
+	}
+	function binary(binop) {
+		var r = {};
+		if (x == y) {
+			for(var a in ret[x]) {
+				var tmp = parseInt(a);
+				r[(binop(tmp, tmp) & 0xFF)] = true;
+			}
+		}
+		else {
+			for(var a in ret[x]) {
+				for(var b in ret[y]) {
+					r[(binop(parseInt(a), parseInt(b)) & 0xFF)] = true;
+				}
+			}
+		}
+		ret[x] = r;
+	}
+	function capi(i) {
+		return Math.min(i, romsize+1+0x200);
+	}
+	function ioffset(delta) {
+		if (LOAD_STORE_QUIRKS) { return; }
+		var s = {};
+		for(var a in ret['i']) {
+			s[capi(parseInt(a) + delta)] = true;
+		}
+		ret['i'] = s;
+	}
+	function isingle(value) {
+		value = capi(value);
+		var s = {}; s[value] = true;
+		return s;
+	}
+	function ioffsets() {
+		var s = {};
+		for(var a in ret['i']) {
+			for(var b in ret[x]) {
+				s[capi(parseInt(a) + parseInt(b))] = true;
+			}
+		}
+		return s;
+	}
+	function bincarry(binop) {
+		var r = {};
+		var c = {};
+		if (x == y) {
+			for(var a in ret[x]) {
+				var tmp = parseInt(a);
+				var v = binop(tmp, tmp);
+				r[(v[0] & 0xFF) ] = true;
+				c[(v[1] ? 1 : 0)] = true;
+			}
+		}
+		else {
+			for(var a in ret[x]) {
+				for(var b in ret[y]) {
+					var v = binop(parseInt(a), parseInt(b));
+					r[(v[0] & 0xFF) ] = true;
+					c[(v[1] ? 1 : 0)] = true;
+				}
+			}
+		}
+		if (VF_ORDER_QUIRKS) {
+			ret[0xF] = c;
+			ret[x]   = r;
+		}
+		else {
+			ret[x]   = r;
+			ret[0xF] = c;
+		}
+	}
+	function chaseReturns() {
+		var destinations = {};
+		for(var rsource in ret['rets']) {
+			for(var rdest in reaching[parseInt(rsource)-2]['rets']) {
+				destinations[rdest] = true;
+			}
+		}
+		return destinations;
+	}
+	function markRead(size, offset) {
+		if (!offset) { offset = 0; }
+		for(var w in ret['i']) {
+			var addr = parseInt(w) + offset;
+			for(var z = 0; z <= size; z++) {
+				setType(addr + z, "data");
+			}
+		}
+	}
+	function markWrite(size, offset) {
+		// todo: distinguish read-only/read-write data?
+		markRead(size, offset);
+	}
+
+	// simulate postconditions:
+	if (SHIFT_QUIRKS && o == 0x8 && (n == 0x6 || n == 0xE)) { y = x; }
+
+	if (op == 0x00EE)           { ret['rets'] = chaseReturns();                  } // return
+	if (o == 0x2)               { ret['rets'] = single(address + 2);             } // call
+	if (o == 0x6)               { ret[x] = single(nn);                           } // vx := nn
+	if (o == 0x7)               { ret[x] = unary(function(a) { return a + nn;}); } // vx += nn
+	if (o == 0x8 && n == 0x0)   { binary  (function(a, b) { return     b; });    } // vx := vy
+	if (o == 0x8 && n == 0x1)   { binary  (function(a, b) { return a | b; });    } // vx |= vy
+	if (o == 0x8 && n == 0x2)   { binary  (function(a, b) { return a & b; });    } // vx &= vy
+	if (o == 0x8 && n == 0x3)   { binary  (function(a, b) { return a ^ b; });    } // vx ^= vy
+	if (o == 0x8 && n == 0x4)   { bincarry(function(a, b) { return [a +  b, a + b > 0xFF]; }); }
+	if (o == 0x8 && n == 0x5)   { bincarry(function(a, b) { return [a -  b, a >= b];       }); }
+	if (o == 0x8 && n == 0x6)   { bincarry(function(a, b) { return [b >> 1, b & 1];        }); }
+	if (o == 0x8 && n == 0x7)   { bincarry(function(a, b) { return [b -  a, b >= a];       }); }
+	if (o == 0x8 && n == 0xE)   { bincarry(function(a, b) { return [b << 1, b & 128];      }); }
+	if (o == 0xA)               { ret['i'] = isingle(nnn);       } // i := nnn
+	if (o == 0xC)               { ret[x]   = maskedrand();       } // vx := random nn
+	if (o == 0xF && nn == 0x01) { ret['plane'] = single(x);      } // plane n
+	if (o == 0xF && nn == 0x07) { ret[x]   = iota(0xFF);         } // vx := delay
+	if (o == 0xF && nn == 0x0A) { ret[x]   = iota(0xF);          } // vx := key
+	if (o == 0xF && nn == 0x1E) { ret['i'] = ioffsets();         } // i += vx
+	if (o == 0xF && nn == 0x29) { ret['i'] = unary(function(a) { return 5*a; });         }
+	if (o == 0xF && nn == 0x30) { ret['i'] = unary(function(a) { return 10*a + 16*5; }); }
+	if (o == 0xF && nn == 0x75) { for(var z = 0; z <= x; z++) { ret['f'+z] = ret[z]; } }
+	if (o == 0xF && nn == 0x85) { for(var z = 0; z <= x; z++) { ret[z] = ret['f'+z]; } }
+
+	// memory operations:
+	if (o == 0xD) {
+		// sprite vx vy n
+		ret[0xF] = { 1:true, 0:true };
+		var color = (3 in ret['plane']);
+		if (n == 0) { markRead(color ? 63      : 31 ); }
+		else        { markRead(color ? (n-1)*2 : n-1); }
+	}
+	if (o == 0xF && nn == 0x33) {
+		// bcd
+		markWrite(2);
+	}
+	if (o == 0xF && nn == 0x55) {
+		// save vx
+		markWrite(x);
+		ioffset(x);
+	}
+	if (o == 0xF && nn == 0x65) {
+		// load vx
+		// todo: model written sets so that
+		// load results can be more precise?
+		var all = iota(0xFF);
+		for(var z = 0; z <= x; z++) { ret[z] = all; }
+		markRead(x);
+		ioffset(x);
+	}
+	if (op == 0xF002) {
+		// audio
+		markRead(15);
+	}
+	if (o == 0x5 && n == 0x2) {
+		// save vx - vy
+		markWrite(Math.abs(x - y), Math.min(x, y));
+	}
+	if (o == 0x5 && n == 0x3) {
+		// load vx - vy
+		var all = iota(0xFF);
+		var dist = Math.abs(x - y);
+		if (x < y) { for(var z = 0; z <= dist; z++) { ret[x+z] = all; }}
+		else       { for(var z = 0; z <= dist; z++) { ret[x-z] = all; }}
+		markRead(Math.abs(x - y), Math.min(x, y));
+	}
+
+	return ret;
+}
+
+function successors(address, prevret) {
+	// produce a list of all possible successor addresses
+	// of this one, honoring branches and dispatchers.
+
+	var a   = program[address];
+	var nn  = program[address+1];
+	var op  = (a <<  8) | nn;
+	var o   = (a >>  4) & 0xF;
+	var x   = (a      ) & 0xF;
+	var y   = (nn >> 4) & 0xF;
+	var nnn = op & 0xFFF;
+
+	function preciseSkip(address, predicate) {
+		// decide which skip paths are possible based
+		// on the reaching set to an address.
+		var pass = false;
+		var skip = false;
+		for(var vx in reaching[address][x]) {
+			if (pass && skip) { break; }
+			for(var vy in reaching[address][y]) {
+				if (predicate(parseInt(vx), parseInt(vy), nn)) { skip = true; }
+				else                                           { pass = true; }
+			}
+		}
+		var ret = [];
+		if (pass) { ret.push(address + 2); }
+		if (skip) { ret.push(address + 4); }
+		return ret;
+	}
+
+	if (op == 0xF000) { return [address+4]; } // xochip wide load
+	if (op == 0x0000) { return [];          } // octo implied halt
+	if (op == 0x00FD) { return [];          } // superchip halt
+	if (o  == 0x1)    { return [nnn];       } // simple jump
+	if (o  == 0x2)    { return [nnn];       } // simple call
+
+	// simple skips
+	if (o == 0x3) {
+		return preciseSkip(address, function(x, y, nn) { return x == nn; });
+	}
+	if (o == 0x4) {
+		return preciseSkip(address, function(x, y, nn) { return x != nn; });
+	}
+	if (o == 0x5) {
+		return preciseSkip(address, function(x, y, nn) { return x == y; });
+	}
+	if (o == 0x9) {
+		return preciseSkip(address, function(x, y, nn) { return x != y; });
+	}
+
+	if ((a & 0xF0) == 0xE0 && (nn == 0x9E || nn == 0xA1)) {
+		// key input skips - take both branches.
+		return [address + 2, address + 4];
+	}
+	if (op == 0x00EE) {
+		// return - follow all valid source addrs.
+		var ret = [];
+		for(var v in prevret) {
+			ret.push(parseInt(v));
+		}
+		return ret;
+	}
+	if (o == 0xB) {
+		// jump0 - follow all possible targets.
+		var ret = [];
+		for(var v in reaching[address][0]) {
+			ret.push(nnn + parseInt(v));
+		}
+		return ret;
+	}
+
+	// default to next instruction in program.
+	return [address + 2];
+}
+
+function analyzeInit(rom, quirks) {
+	program     = [];
+	reaching    = {};
+	type        = {};
+	labels      = {};
+	subroutines = {};
+	natives     = {};
+	lnames      = {};
+	snames      = {};
+	nnames      = {};
+	romsize     = rom.length;
+
+	SHIFT_QUIRKS      = quirks['shiftQuirks']     | false;
+	LOAD_STORE_QUIRKS = quirks['loadStoreQuirks'] | false;
+	VF_ORDER_QUIRKS   = quirks['vfOrderQuirks']   | false;
+	
+	reaching[0x200] = {};
+	for(var z = 0; z < regNames.length; z++) {
+		reaching[0x200][regNames[z]] = { 0:true };
+	}
+	reaching[0x200]['rets'] = {};
+	reaching[0x200]['plane'] = { 1:true };
+	fringe = [0x200];
+
+	for(var x = 0; x < 4096 * 2; x++)   { program[x] = 0x00; }
+	for(var x = 0; x < rom.length; x++) { program[x+0x200] = rom[x]; }
+}
+
+function analyzeWork() {
+	function reachingMerge(a, b) {
+		// take the union of two reaching sets.
+		// if we altered b, it was a subset of a.
+		var changed = false;
+		for(var z = 0; z < regNames.length; z++) {
+			var register = regNames[z];
+			var values = Object.keys(a[register]);
+			for(var vindex = 0; vindex < values.length; vindex++) {
+				var value = values[vindex];
+				if(!(value in b[register])) {
+					changed = true;
+					b[register][value] = true;
+				}
+			}
+		}
+		return changed;
+	}
+
+	if (fringe.length < 1) { return true; }
+
+	var here = fringe.pop();
+
+	// compute successor reaching set
+	var prevret = reaching[here]['rets']; // apply blows this away (!)
+	var output = apply(here);
+
+	// apply successor set to children and enlist them
+	var children = successors(here, prevret);
+
+	for(var x = 0; x < children.length; x++) {
+		var child = children[x];
+
+		var isReturn = (program[child] == 0x00 && program[child+1] == 0xEE);
+
+		if (child == here && isReturn) { 
+			continue;
+		}
+	
+		if ((typeof reaching[child]) == "undefined") {
+			// always explore fresh nodes:
+			reaching[child] = copyReachingSet(output);
+			if (fringe.lastIndexOf(child) == -1) {
+				fringe.push(child);
+			}
+		}
+		else if (reachingMerge(output, reaching[child]) || isReturn) {
+			// if merging expanded the child reaching set,
+			// explore it again:
+			if (fringe.lastIndexOf(child) == -1) {
+				fringe.push(child);
+			}
+		}
+	}
+	return false;
+}
+
+function analyzeFinish() {
+	// name all labels and subroutines by order of appearance:
+	var lsize = 0;
+	var ssize = 0;
+	var nsize = 0;
+	if (typeof labels[0x200] == "undefined") { labels[0x200] = [4097]; }
+	lnames[0x200] = "main";
+	snames[0x200] = "main";
+	for(var x = 0; x < program.length; x++) {
+		if (x == 0x200)       { continue; }
+		if (x in labels)      { lnames[x] = "label-"   + (lsize++); }
+		if (x in subroutines) { snames[x] = "sub-"     + (ssize++); }
+		if (x in natives)     { nnames[x] = "machine-" + (nsize++); }
+	}
+}
+
+function analyze(rom, quirks) {
+	analyzeInit(rom, quirks);
+	while(!analyzeWork()) {}
+	analyzeFinish();
+}
+
+function formatProgram(programSize) {
+	var ret = "";
+	if (SHIFT_QUIRKS) {
+		ret += "# analyzed with shifts that modify vx in place and ignore vy.\n";
+	}
+	if (LOAD_STORE_QUIRKS) {
+		ret += "# analyzed with load and store operations that don't modify i.\n";
+	}
+	if (VF_ORDER_QUIRKS) {
+		ret += "# analyzed with arithmetic results written to vf after the status flag.\n";
+	}
+	ret += "\n";
+
+	// labels beyond rom boundaries
+	// are converted into constants to avoid
+	// introducing additional padding bytes
+	// or lost label declarations.
+	function findOutside(source, dest, names) {
+		for(var a in source) {
+			var addr = parseInt(a);
+			if (addr < 0x200 || addr >= 0x200 + programSize) {
+				dest[addr] = true;
+				ret += (":const " + names[addr] + " " + numericFormat(addr) + "\n");
+			}
+		}
+	}
+	var outside = {};
+	findOutside(labels,      outside, lnames);
+	findOutside(subroutines, outside, snames);
+	findOutside(natives,     outside, nnames);
+
+	// emit code/data
+	function tabs(n) {
+		var r = "";
+		while(n --> 0) { r += "\t"; }
+		return r;
+	}
+	var pendingAgain = [];
+	for(var x = 0; x < programSize; x++) {
+		var a = (x + 0x200);
+
+		// process native code, if applicable:
+		if (a in natives && a != 0x200) {
+			var nat = formatNative(a, "\t");
+			ret += nat[1];
+			if (nat[0] > 0) {
+				x += nat[0] - 1;
+				continue;
+			}
+		}
+
+		// emit labels and find loop heads
+		if (a in subroutines) {
+			ret += ("\n: " + snames[a] + "\n");
+		}
+		if (a in labels) {
+			if (lnames[a] == "main" && !(a in subroutines)) { ret += (": main\n"); }
+
+			for(var z = 0; z < labels[a].length; z++) {
+				var u = labels[a][z];
+				// must be a backref
+				if (u < a) { continue; }
+				// must be an unconditional jump
+				if ((program[u] & 0xF0) != 0x10) { continue; }
+				// must be in a contiguous forward block
+				var foundBreak = false;
+				for(var scan = a; scan <= u; scan += 2) {
+					if (scan in subroutines && scan != a) {
+						// a contiguous block can't contain subroutine entrypoints
+						foundBreak = true;
+						break;
+					}
+					if (type[scan] != "code" && type[scan] != "smc") {
+						// a contiguous block can't contain non-code
+						foundBreak = true;
+						break;
+					}
+					if((program[scan] & 0xF0) == 0x10) {
+						// a contiguous block can't contain a jump to before the loop head
+						var target = ((program[scan] & 0xF) << 8) | (program[scan+1] & 0xFF);
+						if (target < a) {
+							foundBreak = true;
+							break;
+						}
+					}
+				}
+				if (foundBreak) { continue; }
+
+				// loop head identified:
+				labels[a].splice(z--, 1);
+				pendingAgain.push(u);
+				ret += (tabs(pendingAgain.length) + "loop\n");
+			}
+
+			if (labels[a].length > 0 && lnames[a] != "main") {
+				ret += (": " + lnames[a] + "\n");
+			}
+		}
+
+		// emit half-labels
+		if (type[a] == "code" || type[a] == "smc") {
+			if      ((a + 1) in labels     ) { ret += (":next " + lnames[a+1] + "\n"); }
+			else if ((a + 1) in subroutines) { ret += (":next " + snames[a+1] + "\n"); }
+		}
+
+		// emit instruction/data
+		var indent = tabs(pendingAgain.length + 1);
+		if (pendingAgain.indexOf(a) != -1) {
+			var index = pendingAgain.indexOf(a);
+			pendingAgain.splice(index, 1);
+			ret += (tabs(pendingAgain.length + 1) + "again\n");
+			x++;
+		}
+		else if (type[a] == "code") {
+			if (program[a] == 0xF0 && program[a+1] == 0x00) {
+				var nnnn = (program[a+2] << 8) | (program[a+3]);
+				ret += (indent + "i := long "+lnames[nnnn] + "\n");
+				x+=3;
+			}
+			else {
+				ret += (indent + formatInstruction(program[a], program[a+1]) + singleResult(a) + "\n");
+				x++;
+			}
+		}
+		else if (type[a] == "data") {
+			ret += (indent + hexFormat(program[a]) + "\n");
+		}
+		else if (type[a] == "smc" && (type[a+1] == "smc" || type[a+1] == "code")) {
+			ret += indent;
+			ret += hexFormat(program[a]) + " " + hexFormat(program[a+1])
+			ret += " # smc? " + formatInstruction(program[a], program[a+1]) + "\n";
+			x++;
+		}
+		else {
+			ret += (indent + hexFormat(program[a]) + " # unused?");
+			if (program[a] >= 32 && program[a] <= 127) {
+				ret += " "+String.fromCharCode(program[a]);
+			}
+			ret += "\n";
+		}
+
+		// space apart regions of differing types:
+		if (type[a] != type[x+0x201]) {
+			ret += "\n";
+		}
+	}
+
+	return ret;
+}
+
+this.analyze       = analyze;
+this.analyzeInit   = analyzeInit;
+this.analyzeWork   = analyzeWork;
+this.analyzeFinish = analyzeFinish;
+this.formatProgram = formatProgram;
+
+"use strict";
+
+var keymap = [
+	// chip8    // keyboard
+	/* 0 */ 88, // x
+	/* 1 */ 49, // 1
+	/* 2 */ 50, // 2
+	/* 3 */ 51, // 3
+	/* 4 */ 81, // q
+	/* 5 */ 87, // w
+	/* 6 */ 69, // e
+	/* 7 */ 65, // a
+	/* 8 */ 83, // s
+	/* 9 */ 68, // d
+	/* A */ 90, // z
+	/* B */ 67, // c
+	/* C */ 52, // 4
+	/* D */ 82, // r
+	/* E */ 70, // f
+	/* F */ 86  // v
+];
+
+var keymapInverse = [];
+for (var i = 0, len = keymap.length; i < len; i++) {
+	keymapInverse[keymap[i]] = i;
+}
+
+var font = [
+	0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
+	0x20, 0x60, 0x20, 0x20, 0x70, // 1
+	0xF0, 0x10, 0xF0, 0x80, 0xF0, // 2
+	0xF0, 0x10, 0xF0, 0x10, 0xF0, // 3
+	0x90, 0x90, 0xF0, 0x10, 0x10, // 4
+	0xF0, 0x80, 0xF0, 0x10, 0xF0, // 5
+	0xF0, 0x80, 0xF0, 0x90, 0xF0, // 6
+	0xF0, 0x10, 0x20, 0x40, 0x40, // 7
+	0xF0, 0x90, 0xF0, 0x90, 0xF0, // 8
+	0xF0, 0x90, 0xF0, 0x10, 0xF0, // 9
+	0xF0, 0x90, 0xF0, 0x90, 0x90, // A
+	0xE0, 0x90, 0xE0, 0x90, 0xE0, // B
+	0xF0, 0x80, 0x80, 0x80, 0xF0, // C
+	0xE0, 0x90, 0x90, 0x90, 0xE0, // D
+	0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
+	0xF0, 0x80, 0xF0, 0x80, 0x80  // F
+];
+
+var bigfont = [
+	0xFF, 0xFF, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xFF, 0xFF, // 0
+	0x18, 0x78, 0x78, 0x18, 0x18, 0x18, 0x18, 0x18, 0xFF, 0xFF, // 1
+	0xFF, 0xFF, 0x03, 0x03, 0xFF, 0xFF, 0xC0, 0xC0, 0xFF, 0xFF, // 2
+	0xFF, 0xFF, 0x03, 0x03, 0xFF, 0xFF, 0x03, 0x03, 0xFF, 0xFF, // 3
+	0xC3, 0xC3, 0xC3, 0xC3, 0xFF, 0xFF, 0x03, 0x03, 0x03, 0x03, // 4
+	0xFF, 0xFF, 0xC0, 0xC0, 0xFF, 0xFF, 0x03, 0x03, 0xFF, 0xFF, // 5
+	0xFF, 0xFF, 0xC0, 0xC0, 0xFF, 0xFF, 0xC3, 0xC3, 0xFF, 0xFF, // 6
+	0xFF, 0xFF, 0x03, 0x03, 0x06, 0x0C, 0x18, 0x18, 0x18, 0x18, // 7
+	0xFF, 0xFF, 0xC3, 0xC3, 0xFF, 0xFF, 0xC3, 0xC3, 0xFF, 0xFF, // 8
+	0xFF, 0xFF, 0xC3, 0xC3, 0xFF, 0xFF, 0x03, 0x03, 0xFF, 0xFF, // 9
+	0x7E, 0xFF, 0xC3, 0xC3, 0xC3, 0xFF, 0xFF, 0xC3, 0xC3, 0xC3, // A
+	0xFC, 0xFC, 0xC3, 0xC3, 0xFC, 0xFC, 0xC3, 0xC3, 0xFC, 0xFC, // B
+	0x3C, 0xFF, 0xC3, 0xC0, 0xC0, 0xC0, 0xC0, 0xC3, 0xFF, 0x3C, // C
+	0xFC, 0xFE, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xC3, 0xFE, 0xFC, // D
+	0xFF, 0xFF, 0xC0, 0xC0, 0xFF, 0xFF, 0xC0, 0xC0, 0xFF, 0xFF, // E
+	0xFF, 0xFF, 0xC0, 0xC0, 0xFF, 0xFF, 0xC0, 0xC0, 0xC0, 0xC0  // F
+];
+
+////////////////////////////////////
+//
+//   The Chip8 Interpreter:
+//
+////////////////////////////////////
+
+function Emulator() {
+
+	// persistent configuration settings
+	this.tickrate           = 20;
+	this.fillColor          = "#FFCC00";
+	this.fillColor2         = "#FF6600";
+	this.blendColor         = "#662200";
+	this.backgroundColor    = "#996600";
+	this.buzzColor          = "#FFAA00";
+	this.quietColor         = "#000000";
+	this.shiftQuirks        = false;
+	this.loadStoreQuirks    = false;
+	this.vfOrderQuirks      = false;
+	this.clipQuirks         = false;
+	this.jumpQuirks         = false;
+	this.enableXO           = false;
+	this.screenRotation     = 0;
+	this.maskFormatOverride = true;
+	this.numericFormatStr   = "default";
+
+	// interpreter state
+	this.p  = [[],[]];  // pixels
+	this.m  = [];       // memory (bytes)
+	this.r  = [];       // return stack
+	this.v  = [];       // registers
+	this.pc = 0;        // program counter
+	this.i  = 0;        // index register
+	this.dt = 0;        // delay timer
+	this.st = 0;        // sound timer
+	this.hires = false; // are we in SuperChip high res mode?
+	this.flags = [];    // semi-persistent hp48 flag vars
+	this.pattern = [];  // audio pattern buffer
+	this.plane = 1;     // graphics plane
+
+	// control/debug state
+	this.keys = {};       // track keys which are pressed
+	this.waiting = false; // are we waiting for a keypress?
+	this.waitReg = -1;    // destination register of an awaited key
+	this.halted = false;
+	this.breakpoint = false;
+	this.metadata = {};
+	this.tickCounter = 0;
+
+	// external interface stubs
+	this.exitVector  = function() {}                                   // fired by 'exit'
+	this.importFlags = function() { return [0, 0, 0, 0, 0, 0, 0, 0]; } // load persistent flags
+	this.exportFlags = function(flags) {}                              // save persistent flags
+	this.buzzTrigger = function(ticks, remainingTicks) {}                              // fired when buzzer played
+
+	this.init = function(rom) {
+		// initialise memory with a new array to ensure that it is of the right size and is initiliased to 0
+		this.m = this.enableXO ? new Uint8Array(0x10000) : new Uint8Array(0x1000);
+
+		// initialize memory
+		for(var z = 0; z < 32*64;          z++) { this.p[0][z] = 0; this.p[1][z] = 0; }
+		for(var z = 0; z < font.length;    z++) { this.m[z] = font[z]; }
+		for(var z = 0; z < bigfont.length; z++) { this.m[z + font.length] = bigfont[z]; }
+		for(var z = 0; z < rom.rom.length; z++) { this.m[0x200+z] = rom.rom[z]; }
+		for(var z = 0; z < 16;             z++) { this.v[z] = 0; }
+		for(var z = 0; z < 16;             z++) { this.pattern[z] = 0; }
+
+		// initialize interpreter state
+		this.r = [];
+		this.pc = 0x200;
+		this.i  = 0;
+		this.dt = 0;
+		this.st = 0;
+		this.hires = false;
+		this.plane = 1;
+
+		// initialize control/debug state
+		this.keys = {};
+		this.waiting = false;
+		this.waitReg = -1;
+		this.halted = false;
+		this.breakpoint = false;
+		this.metadata = rom;
+		this.tickCounter = 0;
+	}
+
+	this.writeCarry = function(dest, value, flag) {
+		this.v[dest] = (value & 0xFF);
+		this.v[0xF] = flag ? 1 : 0;
+		if (this.vfOrderQuirks) {
+			this.v[dest] = (value & 0xFF);
+		}
+	}
+
+	this.math = function(x, y, op) {
+		// basic arithmetic opcodes
+		switch(op) {
+			case 0x0: this.v[x]  = this.v[y]; break;
+			case 0x1: this.v[x] |= this.v[y]; break;
+			case 0x2: this.v[x] &= this.v[y]; break;
+			case 0x3: this.v[x] ^= this.v[y]; break;
+			case 0x4:
+				var t = this.v[x]+this.v[y];
+				this.writeCarry(x, t, (t > 0xFF));
+				break;
+			case 0x5:
+				var t = this.v[x]-this.v[y];
+				this.writeCarry(x, t, (this.v[x] >= this.v[y]));
+				break;
+			case 0x7:
+				var t = this.v[y]-this.v[x];
+				this.writeCarry(x, t, (this.v[y] >= this.v[x]));
+				break;
+			case 0x6:
+				if (this.shiftQuirks) { y = x; }
+				var t = this.v[y] >> 1;
+				this.writeCarry(x, t, (this.v[y] & 0x1));
+				break;
+			case 0xE:
+				if (this.shiftQuirks) { y = x; }
+				var t = this.v[y] << 1;
+				this.writeCarry(x, t, ((this.v[y] >> 7) & 0x1));
+				break;
+			default:
+				haltBreakpoint("unknown math opcode "+op);
+		}
+	}
+
+	this.misc = function(x, rest) {
+		// miscellaneous opcodes
+		switch(rest) {
+			case 0x01:
+				this.plane = (x & 0x3);
+				break;
+			case 0x02:
+				for(var z = 0; z < 16; z++) {
+					this.pattern[z] = this.m[this.i+z];
+				}
+				break;
+			case 0x07: this.v[x] = this.dt; break;
+			case 0x0A: this.waiting = true; this.waitReg = x; break;
+			case 0x15: this.dt = this.v[x]; break;
+			case 0x18: this.buzzTrigger(this.v[x], this.st); this.st = this.v[x]; break;
+			case 0x1E: this.i = (this.i + this.v[x])&0xFFFF; break;
+			case 0x29: this.i = ((this.v[x] & 0xF) * 5); break;
+			case 0x30: this.i = ((this.v[x] & 0xF) * 10 + font.length); break;
+			case 0x33:
+				this.m[this.i]   = Math.floor(this.v[x]/100)%10;
+				this.m[this.i+1] = Math.floor(this.v[x]/10)%10;
+				this.m[this.i+2] = this.v[x]%10;
+				break;
+			case 0x55:
+				for(var z = 0; z <= x; z++) { this.m[this.i+z] = this.v[z]; }
+				if (!this.loadStoreQuirks) { this.i = (this.i+x+1)&0xFFFF; }
+				break;
+			case 0x65:
+				for(var z = 0; z <= x; z++) { this.v[z] = this.m[this.i+z]; }
+				if (!this.loadStoreQuirks) { this.i = (this.i+x+1)&0xFFFF; }
+				break;
+			case 0x75:
+				for(var z = 0; z <= x; z++) { this.flags[z] = this.v[z]; }
+				this.exportFlags(this.flags);
+				break;
+			case 0x85:
+				this.flags = this.importFlags();
+				if (typeof this.flags == "undefined" || this.flags == null) {
+					this.flags = [0, 0, 0, 0, 0, 0, 0, 0];
+				}
+				for(var z = 0; z <= x; z++) { this.v[z] = this.flags[z]; }
+				break;
+			default:
+				haltBreakpoint("unknown misc opcode "+rest);
+		}
+	}
+
+	this.sprite = function sprite(x, y, len) {
+		this.v[0xF] = 0x0;
+		var rowSize = this.hires ? 128 : 64;
+		var colSize = this.hires ?  64 : 32;
+		var i = this.i;
+		for(var layer = 0; layer < 2; layer++) {
+			if ((this.plane & (layer+1)) == 0) { continue; }
+			if (len == 0) {
+				// draw a SuperChip 16x16 sprite
+				for(var a = 0; a < 16; a++) {
+					for(var b = 0; b < 16; b++) {
+						var target = ((x+b) % rowSize) + ((y+a) % colSize)*rowSize;
+						var source = ((this.m[i+(a*2)+(b > 7 ? 1:0)] >> (7-(b%8))) & 0x1) != 0;
+						if (this.clipQuirks) {
+							if ((x%rowSize)+b>=rowSize || (y%colSize)+a>=colSize) { source = 0; }
+						}
+						if (!source) { continue; }
+						if (this.p[layer][target]) { this.p[layer][target] = 0; this.v[0xF] = 0x1; }
+						else { this.p[layer][target] = 1; }
+					}
+				}
+				i += 32;
+			}
+			else {
+				// draw a Chip8 8xN sprite
+				for(var a = 0; a < len; a++) {
+					for(var b = 0; b < 8; b++) {
+						var target = ((x+b) % rowSize) + ((y+a) % colSize)*rowSize;
+						var source = ((this.m[i+a] >> (7-b)) & 0x1) != 0;
+						if (this.clipQuirks) {
+							if ((x%rowSize)+b>=rowSize || (y%colSize)+a>=colSize) { source = 0; }
+						}
+						if (!source) { continue; }
+						if (this.p[layer][target]) { this.p[layer][target] = 0; this.v[0xF] = 0x1; }
+						else { this.p[layer][target] = 1; }
+					}
+				}
+				i += len;
+			}
+		}
+	}
+
+	this.call = function(nnn) {
+		if (this.r.length >= 12) {
+			haltBreakpoint("call stack overflow.");
+		}
+		this.r.push(this.pc);
+		this.pc = nnn
+	}
+
+	this.jump0 = function(nnn) {
+		if (this.jumpQuirks) { this.pc = nnn + this.v[(nnn >> 8)&0xF];  }
+		else                 { this.pc = nnn + this.v[0]; }
+	}
+
+	this.machine = function(nnn) {
+		if (nnn == 0x000) { this.halted = true; return; }
+		haltBreakpoint("machine code is not supported.");
+	}
+
+	this.opcode = function() {
+		// decode the current opcode
+		var op  = (this.m[this.pc  ] << 8) | this.m[this.pc+1];
+		var o   = (this.m[this.pc  ] >> 4) & 0x00F;
+		var x   = (this.m[this.pc  ]     ) & 0x00F;
+		var y   = (this.m[this.pc+1] >> 4) & 0x00F;
+		var n   = (this.m[this.pc+1]     ) & 0x00F;
+		var nn  = (this.m[this.pc+1]     ) & 0x0FF;
+		var nnn = op & 0xFFF;
+		this.pc += 2;
+
+		// execute a simple opcode
+		if (op == 0x00E0) {
+			// clear
+			for(var layer = 0; layer < 2; layer++) {
+				if ((this.plane & (layer+1)) == 0) { continue; }
+				for(var z = 0; z < this.p[layer].length; z++) {
+					this.p[layer][z] = 0;
+				}
+			}
+			return;
+		}
+		if (op == 0x00EE) {
+			// return
+			this.pc = this.r.pop();
+			return;
+		}
+		if ((op & 0xF0FF) == 0xE09E) {
+			// if -key
+			if (keymap[this.v[x]] in this.keys) { this.pc += 2; }
+			return;
+		}
+		if ((op & 0xF0FF) == 0xE0A1) {
+			// if key
+			if (!(keymap[this.v[x]] in this.keys)) { this.pc += 2; }
+			return;
+		}
+		if ((op & 0xFFF0) == 0x00C0) {
+			// scroll down n pixels
+			var rowSize = this.hires ? 128 : 64;
+			for(var layer = 0; layer < 2; layer++) {
+				if ((this.plane & (layer+1)) == 0) { continue; }
+				for(var z = this.p[layer].length; z >= 0; z--) {
+					this.p[layer][z] = (z >= rowSize * n) ? this.p[layer][z - (rowSize * n)] : 0;
+				}
+			}
+			return;
+		}
+		if ((op & 0xFFF0) == 0x00D0) {
+			// scroll up n pixels
+			var rowSize = this.hires ? 128 : 64;
+			for(var layer = 0; layer < 2; layer++) {
+				if ((this.plane & (layer+1)) == 0) { continue; }
+				for(var z = 0; z < this.p[layer].length; z++) {
+					this.p[layer][z] = (z < (this.p[layer].length - rowSize * n)) ? this.p[layer][z + (rowSize * n)] : 0;
+				}
+			}
+			return;
+		}
+		if (op == 0x00FB) {
+			// scroll right 4 pixels
+			var rowSize = this.hires ? 128 : 64;
+			for(var layer = 0; layer < 2; layer++) {
+				if ((this.plane & (layer+1)) == 0) { continue; }
+				for(var a = 0; a < this.p[layer].length; a += rowSize) {
+					for(var b = rowSize-1; b >= 0; b--) {
+						this.p[layer][a + b] = (b > 3) ? this.p[layer][a + b - 4] : 0;
+					}
+				}
+			}
+			return;
+		}
+		if (op == 0x00FC) {
+			// scroll left 4 pixels
+			var rowSize = this.hires ? 128 : 64;
+			for(var layer = 0; layer < 2; layer++) {
+				if ((this.plane & (layer+1)) == 0) { continue; }
+				for(var a = 0; a < this.p[layer].length; a += rowSize) {
+					for(var b = 0; b < rowSize; b++) {
+						this.p[layer][a + b] = (b < rowSize - 4) ? this.p[layer][a + b + 4] : 0;
+					}
+				}
+			}
+			return;
+		}
+		if (op == 0x00FD) {
+			// exit
+			this.halted = true;
+			this.exitVector();
+			return;
+		}
+		if (op == 0x00FE) {
+			// lores
+			this.hires = false;
+			this.p = [[], []];
+			for(var z = 0; z < 32*64; z++) { this.p[0][z] = 0; this.p[1][z] = 0; }
+			return;
+		}
+		if (op == 0x00FF) {
+			// hires
+			this.hires = true;
+			this.p = [[], []];
+			for(var z = 0; z < 64*128; z++) { this.p[0][z] = 0; this.p[1][z] = 0; }
+			return;
+		}
+		if (op == 0xF000) {
+			// long memory reference
+			this.i = ((this.m[this.pc] << 8) | (this.m[this.pc+1])) & 0xFFFF;
+			this.pc += 2;
+			return;
+		}
+
+		if (o == 0x5 && n != 0) {
+			if (n == 2) {
+				// save range
+				var dist = Math.abs(x - y);
+				if (x < y) { for(var z = 0; z <= dist; z++) { this.m[this.i+z] = this.v[x+z]; }}
+				else       { for(var z = 0; z <= dist; z++) { this.m[this.i+z] = this.v[x-z]; }}
+				return;
+			}
+			else if (n == 3) {
+				// load range
+				var dist = Math.abs(x - y);
+				if (x < y) { for(var z = 0; z <= dist; z++) { this.v[x+z] = this.m[this.i+z]; }}
+				else       { for(var z = 0; z <= dist; z++) { this.v[x-z] = this.m[this.i+z]; }}
+				return;
+			}
+			else {
+				haltBreakpoint("unknown opcode "+op);
+			}
+		}
+		if (o == 0x9 && n != 0) {
+			haltBreakpoint("unknown opcode "+op);
+		}
+
+		// dispatch complex opcodes
+		switch(o) {
+			case 0x0: this.machine(nnn);                            break;
+			case 0x1: this.pc = nnn;                                break;
+			case 0x2: this.call(nnn);                               break;
+			case 0x3: if (this.v[x] == nn)        { this.pc += 2; } break;
+			case 0x4: if (this.v[x] != nn)        { this.pc += 2; } break;
+			case 0x5: if (this.v[x] == this.v[y]) { this.pc += 2; } break;
+			case 0x6: this.v[x] = nn;                               break;
+			case 0x7: this.v[x] = (this.v[x] + nn) & 0xFF;          break;
+			case 0x8: this.math(x, y, n);                           break;
+			case 0x9: if (this.v[x] != this.v[y]) { this.pc += 2; } break;
+			case 0xA: this.i = nnn;                                 break;
+			case 0xB: this.jump0(nnn);                              break;
+			case 0xC: this.v[x] = (Math.random()*255)&nn;           break;
+			case 0xD: this.sprite(this.v[x], this.v[y], n);         break;
+			case 0xF: this.misc(x, nn);                             break;
+			default: haltBreakpoint("unknown opcode "+o);
+		}
+	}
+
+	this.tick = function() {
+		if (this.halted) { return; }
+		this.tickCounter++;
+		try {
+			this.opcode();
+		}
+		catch(err) {
+			console.log("halted: " + err);
+			this.halted = true;
+		}
+	}
+}
+
+"use strict";
+
+////////////////////////////////////
+//
+//   Emulator Execution
+//
+////////////////////////////////////
+
+var scaleFactor = 5;
+var renderTarget = "target";
+
+function unpackOptions(emulator, options) {
+	var flags = [
+		"tickrate",
+		"fillColor",
+		"fillColor2",
+		"blendColor",
+		"backgroundColor",
+		"buzzColor",
+		"quietColor",
+		"shiftQuirks",
+		"loadStoreQuirks",
+		"vfOrderQuirks",
+		"clipQuirks",
+		"jumpQuirks",
+		"enableXO",
+		"screenRotation",
+	]
+	for (var x = 0; x < flags.length; x++) {
+		var flag = flags[x];
+		if (options[flag]) { emulator[flag] = options[flag]; }
+	}
+}
+
+function setRenderTarget(scale, canvas) {
+	scaleFactor = scale;
+	renderTarget = canvas;
+	var c = document.getElementById(canvas);
+
+	// Remove any existing previous delta frame so first frame is always drawn:
+	c.last = undefined;
+
+	var w  = scaleFactor * 128;
+	var h  = scaleFactor *  64;
+	var wm = (scaleFactor * -64) + "px";
+	var hm = (scaleFactor * -32) + "px";
+
+	if (emulator.screenRotation == 90 || emulator.screenRotation == 270) {
+		c.width  = h;
+		c.height = w;
+		c.style.marginLeft = hm;
+		c.style.marginTop  = wm;
+	}
+	else {
+		c.width  = w;
+		c.height = h;
+		c.style.marginLeft = wm;
+		c.style.marginTop  = hm;
+	}
+}
+
+function getTransform(emulator, g) {
+	g.setTransform(1, 0, 0, 1, 0, 0);
+	var x = scaleFactor * 128;
+	var y = scaleFactor *  64;
+	switch(emulator.screenRotation) {
+		case 90:
+			g.rotate(0.5 * Math.PI);
+			g.translate(0, -y);
+			break;
+		case 180:
+			g.rotate(1.0 * Math.PI);
+			g.translate(-x, -y);
+			break;
+		case 270:
+			g.rotate(1.5 * Math.PI);
+			g.translate(-x, 0);
+			break;
+		default:
+			/* nothing to do */
+	}
+}
+
+
+function arrayEqual(a, b) {
+	var length = a.length;
+	if (length !== b.length) { return false; }
+	for (var i = 0; i < length; i++) {
+		if (a[i] !== b[i]) { return false; }
+	}
+	return true;
+}
+
+function getColor(id) {
+	switch(id) {
+		case 0: return emulator.backgroundColor;
+		case 1: return emulator.fillColor;
+		case 2: return emulator.fillColor2;
+		case 3: return emulator.blendColor;
+	}
+	throw "invalid color: " + id;
+}
+
+function renderDisplay(emulator) {
+	var c = document.getElementById(renderTarget);
+
+	// Canvas rendering can be expensive. Exit out early if nothing has changed.
+	// NOTE: toggling emulator.hires changes emulator.p dimensions.
+	var colors = [emulator.backColor, emulator.fillColor, emulator.fillColor2, emulator.blendColor];
+	if (c.last !== undefined
+			&& arrayEqual(c.last.p[0], emulator.p[0]) && arrayEqual(c.last.p[1], emulator.p[1])
+			&& arrayEqual(c.last.colors, colors)) {
+		return;
+	}
+	c.last = {
+		colors: colors,
+		p: [emulator.p[0].slice(), emulator.p[1].slice()]
+	};
+
+	var g = c.getContext("2d");
+	getTransform(emulator, g);
+	g.fillStyle = emulator.backgroundColor;
+	g.fillRect(0, 0, c.width, c.height);
+	var max    = emulator.hires ? 128*64      : 64*32;
+	var stride = emulator.hires ? 128         : 64;
+	var size   = emulator.hires ? scaleFactor : scaleFactor*2;
+
+	for(var z = 0; z < max; z++) {
+		var color = getColor(emulator.p[0][z] + (emulator.p[1][z] * 2));
+		if (color == emulator.backColor) {
+			continue;  // it's pointless to draw the background color
+		}
+		g.fillStyle = color;
+		g.fillRect(
+			Math.floor(z%stride)*size,
+			Math.floor(z/stride)*size,
+			size, size
+		);
+	}
+}
+
+////////////////////////////////////
+//
+//   Audio Playback
+//
+////////////////////////////////////
+
+var audio;
+var audioNode;
+var audioSource;
+var audioData;
+
+var AudioBuffer = function(buffer, duration) {
+	if (!(this instanceof AudioBuffer)) {
+		return new AudioBuffer(buffer, duration);
+	}
+
+	this.pointer = 0;
+	this.buffer = buffer;
+	this.duration = duration;
+}
+
+AudioBuffer.prototype.write = function(buffer, index, size) {
+	size = Math.max(0, Math.min(size, this.duration))
+	if (!size) { return size; }
+
+	this.duration -= size;
+	var bufferSize = this.buffer.length;
+	var end = index + size;
+
+	for(var i = index; i < end; ++i) {
+		buffer[i] = this.buffer[this.pointer++];
+		this.pointer %= bufferSize;
+	}
+
+	return size;
+}
+
+AudioBuffer.prototype.dequeue = function(duration) {
+	this.duration -= duration;
+}
+
+var FREQ = 4000;
+var TIMER_FREQ = 60;
+var SAMPLES = 16;
+var BUFFER_SIZE = SAMPLES * 8
+
+function audioSetup() {
+	if (!audio) {
+		if (typeof AudioContext !== 'undefined') {
+			audio = new AudioContext();
+		}
+		else if (typeof webkitAudioContext !== 'undefined') {
+			audio = new webkitAudioContext();
+		}
+	}
+	if (audio && !audioNode) {
+		audioNode = audio.createScriptProcessor(4096, 1, 1);
+		audioNode.onaudioprocess = function(audioProcessingEvent) {
+			var outputBuffer = audioProcessingEvent.outputBuffer;
+			var outputData = outputBuffer.getChannelData(0);
+			var samples_n = outputBuffer.length;
+
+			var index = 0;
+			while(audioData.length && index < samples_n) {
+				var size = samples_n - index;
+				var written = audioData[0].write(outputData, index, size);
+				index += written;
+				if (written < size) {
+					audioData.shift();
+				}
+			}
+
+			while(index < samples_n) {
+				outputData[index++] = 0;
+			}
+		}
+		audioData = [];
+		audioNode.connect(audio.destination);
+		return true;
+	}
+	if (audio && audioNode) { return true; }
+	return false;
+}
+
+function stopAudio() {
+	if (!audio) { return; }
+	if (audioNode) {
+		audioNode.disconnect();
+		audioNode = null;
+	}
+	audioData = [];
+}
+
+var VOLUME = 0.25;
+
+function playPattern(soundLength, buffer, remainingTicks) {
+	if (!audio) { return; }
+
+	var samples = Math.floor(BUFFER_SIZE * audio.sampleRate / FREQ);
+	var audioBuffer = new Array(samples);
+	if (remainingTicks && audioData.length > 0) {
+		audioData[audioData.length - 1].dequeue(Math.floor(remainingTicks * audio.sampleRate / TIMER_FREQ));
+	}
+
+	for(var i = 0; i < samples; ++i) {
+		var srcIndex = Math.floor(i * FREQ / audio.sampleRate);
+		var cell = srcIndex >> 3;
+		var bit = srcIndex & 7;
+		audioBuffer[i] = (buffer[srcIndex >> 3] & (0x80 >> bit)) ? VOLUME: 0;
+	}
+	audioData.push(new AudioBuffer(audioBuffer, Math.floor(soundLength * audio.sampleRate / TIMER_FREQ)));
+}
+
+function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(str));
+    return div.innerHTML;
+}
+
+"use strict";
+
+////////////////////////////////////
+//
+//   Prettyprinting
+//
+////////////////////////////////////
+
+var zeroes = "00000000";
+
+function maskFormat(mask) {
+	if (emulator.maskFormatOverride) { return binaryFormat(mask);  }
+	else                             { return numericFormat(mask); }
+}
+
+function numericFormat(num, format) {
+	if (!format)
+		format = emulator.numericFormatStr;
+
+	if (format == "dec")      { return decimalFormat(num); }
+	else if (format == "bin") { return binaryFormat(num);  }
+	else if (format == "hex") { return hexFormat(num);     }
+
+	return hexFormat(num);
+}
+
+
+function decimalFormat(num) {
+	var dec = num.toString(10);
+	return dec;
+}
+
+function hexFormat(num) {
+	var hex  = num.toString(16).toUpperCase();
+	var pad0 = zeroPad(hex.length, 2);
+	return "0x" + pad0 + hex;
+}
+
+function binaryFormat(num) {
+	var bin  = num.toString(2);
+	var pad0 = zeroPad(bin.length, 8);
+	return "0b" + pad0 + bin;
+}
+
+function zeroPad(strLen, byteLength) {
+	var dif = strLen % byteLength;
+	if (dif == 0) { return ""; }
+
+	var len  = byteLength - dif;
+	var pad0 = zeroes.substr(0, len);
+	return pad0;
+}
+
+
+function display(rom) {
+	return "[" + (rom.map(hexFormat).join(", ")) + "]";
+}
+
+////////////////////////////////////
+//
+//   Emulator Setup
+//
+////////////////////////////////////
+
+var intervalHandle = null;
+var emulator = new Emulator();
+
+function run() {
+	runRom(compile());
+}
+
+function compile() {
+	var input  = document.getElementById("input");
+	var output = document.getElementById("output");
+	var status = document.getElementById("status");
+
+	var MAX_ROM = 3584;
+	if (emulator.enableXO) { MAX_ROM = 65536 - 512; }
+
+	var c = new Compiler(input.value);
+	try {
+		output.value = "";
+		output.style.display = "none";
+		c.go();
+		if (c.xo && (!emulator.enableXO)) {
+			throw "Rom makes use of XO-Chip extensions. They must be enabled in the Options panel.";
+		}
+		if (c.rom.length > MAX_ROM) {
+			throw "Rom is too large- " + (c.rom.length-MAX_ROM) + " bytes over!";
+		}
+		output.value = display(c.rom);
+		output.style.display = "inline";
+		status.innerHTML = ((c.rom.length) + " bytes, " + (MAX_ROM-c.rom.length) + " free.");
+		status.style.backgroundColor = "black";
+		if (c.schip) { status.innerHTML += " (SuperChip instructions used)"; }
+		if (c.xo) { status.innerHTML += " (XO-Chip instructions used)"; }
+	}
+	catch(error) {
+		status.style.backgroundColor = "darkred";
+		status.innerHTML = error;
+		if (c.pos != null) {
+			input.focus();
+			input.selectionStart = c.pos[1]-1;
+			input.selectionEnd   = c.pos[2]-1;
+		}
+		return null;
+	}
+
+	return {
+		rom        :c.rom,
+		breakpoints:c.breakpoints,
+		dbginfo	   :c.dbginfo,
+		aliases    :c.aliases,
+		labels     :c.dict
+	};
+}
+
+function runRom(rom) {
+	if (rom === null) { return; }
+	if (intervalHandle != null) { reset(); }
+	emulator.exitVector = reset;
+	emulator.importFlags = function() { return JSON.parse(localStorage.getItem("octoFlagRegisters")); }
+	emulator.exportFlags = function(flags) { localStorage.setItem("octoFlagRegisters", JSON.stringify(flags)); }
+	emulator.buzzTrigger = function(ticks, remainingTicks) { playPattern(ticks, emulator.pattern, remainingTicks); }
+	emulator.init(rom);
+	setRenderTarget(5, "target");
+	audioSetup();
+	document.getElementById("emulator").style.display = "inline";
+	document.getElementById("emulator").style.backgroundColor = emulator.quietColor;
+	window.addEventListener("keydown", keyDown, false);
+	window.addEventListener("keyup"  , keyUp  , false);
+	intervalHandle = setInterval(render, 1000/60);
+}
+
+function reset() {
+	document.getElementById("emulator").style.display = "none";
+	window.removeEventListener("keydown", keyDown, false);
+	window.removeEventListener("keyup"  , keyUp  , false);
+	window.clearInterval(intervalHandle);
+	clearBreakpoint();
+	stopAudio();
+}
+
+function share() {
+	// cribbed from increpare/Puzzlescript/js/toolbar.js
+	var xhr = new XMLHttpRequest();
+	xhr.open('POST', 'https://api.github.com/gists');
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState !== 4) { return; }
+		var result = JSON.parse(xhr.responseText);
+		if (xhr.status === 403) {
+			alert(result.message);
+		}
+		else if (xhr.status !== 200 && xhr.status !== 201) {
+			alert("HTTP Error "+ xhr.status + ' - ' + xhr.statusText);
+		}
+		else {
+			window.location.href = window.location.href.replace(/(index.html|\?gist=.*)*$/, 'index.html?gist=' + result.id);
+		}
+	}
+	var prog = document.getElementById("input").value;
+	var options = JSON.stringify({
+		"tickrate"        : emulator.tickrate,
+		"fillColor"       : emulator.fillColor,
+		"fillColor2"      : emulator.fillColor2,
+		"blendColor"      : emulator.blendColor,
+		"backgroundColor" : emulator.backgroundColor,
+		"buzzColor"       : emulator.buzzColor,
+		"quietColor"      : emulator.quietColor,
+		"shiftQuirks"     : emulator.shiftQuirks,
+		"loadStoreQuirks" : emulator.loadStoreQuirks,
+		"vfOrderQuirks"   : emulator.vfOrderQuirks,
+		"clipQuirks"      : emulator.clipQuirks,
+		"jumpQuirks"      : emulator.jumpQuirks,
+		"enableXO"        : emulator.enableXO,
+		"screenRotation"  : emulator.screenRotation,
+	});
+	xhr.send(JSON.stringify({
+		"description" : "Octo Chip8 Program",
+		"public" : true,
+		"files": {
+			"readme.txt" : {
+				"content": "Play this game by pasting the program into http://johnearnest.github.io/Octo/"
+			},
+			"prog.ch8" : { "content": prog },
+			"options.json": { "content": options }
+		}
+	}));
+}
+
+function runGist() {
+	var xhr = new XMLHttpRequest();
+	var gistId = location.search.match(/gist=(\w+)/);
+	if (!gistId) { return; }
+	xhr.open('GET', 'https://api.github.com/gists/' + gistId[1]);
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState == 4 && (xhr.status == 200 || xhr.status !== 201)) {
+			var result = JSON.parse(xhr.responseText);
+			document.getElementById("input").value = result.files["prog.ch8"].content;
+			var options = JSON.parse(result.files["options.json"].content);
+			var framerateNum = options["tickrate"]|0;
+			var framerateEl = document.getElementById("framerate");
+			framerateEl.value = framerateNum;
+			emulator.tickrate = (framerateEl.value == "") ? framerateNum : framerateEl.value;
+			unpackOptions(emulator, options);
+			if (emulator.enableXO) {
+				document.getElementById("enableXO").checked = true;
+				setEnableXO();
+			}
+			run();
+		}
+	}
+	xhr.send();
+}
+
+////////////////////////////////////
+//
+//   Emulator Execution
+//
+////////////////////////////////////
+
+function render() {
+	for(var z = 0; (z < emulator.tickrate) && (!emulator.waiting); z++) {
+		if (emulator.breakpoint != true) {
+			emulator.tick();
+			if (emulator.pc in emulator.metadata.breakpoints) {
+				haltBreakpoint(emulator.metadata.breakpoints[emulator.pc]);
+			}
+		}
+	}
+	if (emulator.breakpoint != true) {
+		if (emulator.dt > 0) { emulator.dt--; }
+		if (emulator.st > 0) { emulator.st--; }
+	}
+	renderDisplay(emulator);
+	if (emulator.halted) { return; }
+	document.getElementById("emulator").style.backgroundColor = (emulator.st > 0) ? emulator.buzzColor : emulator.quietColor;
+}
+
+function keyDown(event) {
+	if (!(event.keyCode in emulator.keys)) {
+		emulator.keys[event.keyCode] = true;
+		if (event.keyCode in keymapInverse) {
+			// add an "active" class to the current button
+			var keyElement = document.getElementById(
+				'0x' + keymapInverse[event.keyCode].toString(16).toUpperCase()
+			);
+			if (!(keyElement.className.match(/active/))) {
+				keyElement.className += ' active';
+			}
+		}
+	}
+}
+
+function keyUp(event) {
+	if (event.keyCode in emulator.keys) {
+		delete emulator.keys[event.keyCode];
+		if (event.keyCode in keymapInverse) {
+			var keyElement = document.getElementById(
+				'0x' + keymapInverse[event.keyCode].toString(16).toUpperCase()
+			);
+			keyElement.className = keyElement.className.replace('active', '');
+		}
+	}
+	if (event.keyCode == 27) { reset(); }
+	if (event.keyCode == 73) { // i
+		if (emulator.breakpoint) {
+			clearBreakpoint();
+		}
+		else {
+			haltBreakpoint("user interrupt");
+		}
+	}
+	if (event.keyCode == 79) { // o
+		if (emulator.breakpoint) {
+			emulator.tick();
+			renderDisplay(emulator);
+			haltBreakpoint("single stepping");
+		}
+	}
+	if (emulator.waiting) {
+		for(var z = 0; z < 16; z++) {
+			if (keymap[z] == event.keyCode) {
+				emulator.waiting = false;
+				emulator.v[emulator.waitReg] = z;
+				return;
+			}
+		}
+	}
+}
+
+////////////////////////////////////
+//
+//   Editor
+//
+////////////////////////////////////
+
+document.getElementById("input").onkeydown = function(event) {
+	if (event.keyCode == 9) {
+		var text  = this.value;
+		var start = this.selectionStart;
+		var end   = this.selectionEnd;
+
+		this.value = text.substring(0, start) + '\t' + text.substring(end);
+		this.selectionStart = this.selectionEnd = start + 1;
+		return false;
+	}
+};
+
+////////////////////////////////////
+//
+//   Manual
+//
+////////////////////////////////////
+
+function toggleManual() {
+	var manual = document.getElementById("manual");
+	if (manual.style.display == "none") {
+		manual.style.display = "inline";
+	}
+	else {
+		manual.style.display = "none";
+	}
+}
+
+////////////////////////////////////
+//
+//   Options
+//
+////////////////////////////////////
+
+function framerate() {
+	emulator.tickrate = document.getElementById("framerate").value;
+}
+
+function editRotation() {
+	emulator.screenRotation = parseInt(document.getElementById("screenRotation").value);
+}
+
+function editFore1() {
+	var val = document.getElementById("foreEdit1").value;
+	document.getElementById("foreSample1").bgColor = val;
+	emulator.fillColor = val;
+	showPixels();
+}
+
+function editFore2() {
+	var val = document.getElementById("foreEdit2").value;
+	document.getElementById("foreSample2").bgColor = val;
+	emulator.fillColor2 = val;
+	showPixels();
+}
+
+function editBlend() {
+	var val = document.getElementById("blendEdit").value;
+	document.getElementById("blendSample").bgColor = val;
+	emulator.blendColor = val;
+	showPixels();
+}
+
+function editBack() {
+	var val = document.getElementById("backEdit").value;
+	document.getElementById("backSample").bgColor = val;
+	emulator.backgroundColor = val;
+	showPixels();
+}
+
+function editBuzz() {
+	var val = document.getElementById("buzzEdit").value;
+	document.getElementById("buzzSample").bgColor = val;
+	emulator.buzzColor = val;
+}
+
+function editSilent() {
+	var val = document.getElementById("silentEdit").value;
+	document.getElementById("silentSample").bgColor = val;
+	emulator.quietColor = val;
+}
+
+function palettePreset() {
+	var val = document.getElementById("palettePreset").value;
+	if (val.length < 1) { return; }
+	if (val == 'classic') {
+		document.getElementById("foreEdit1") .value = "#FFCC00"; editFore1();
+		document.getElementById("foreEdit2") .value = "#FF6600"; editFore2();
+		document.getElementById("blendEdit") .value = "#662200"; editBlend();
+		document.getElementById("backEdit")  .value = "#996600"; editBack();
+		document.getElementById("buzzEdit")  .value = "#FFAA00"; editBuzz();
+		document.getElementById("silentEdit").value = "#000000"; editSilent();
+		return;
+	}
+	val = JSON.parse(val);
+	if (emulator.enableXO) {
+		document.getElementById("foreEdit1").value = val[0]; editFore1();
+		document.getElementById("foreEdit2").value = val[1]; editFore2();
+		document.getElementById("blendEdit").value = val[2]; editBlend();
+		document.getElementById("backEdit") .value = val[3]; editBack();
+	}
+	else {
+		document.getElementById("foreEdit1").value = val[0]; editFore1();
+		document.getElementById("backEdit" ).value = val[1]; editBack();
+	}
+	document.getElementById("buzzEdit")  .value = val[4]; editBuzz();
+	document.getElementById("silentEdit").value = val[5]; editSilent();
+}
+
+function setQuirks(flag) {
+	emulator[flag] = document.getElementById(flag).checked;
+}
+
+function setEnableXO() {
+	var check = document.getElementById("enableXO");
+	emulator.enableXO = check.checked;
+	if (check.checked) {
+		var features = document.getElementsByClassName("xofeature");
+		for(var z = 0; z < features.length; z++) {
+			var feature = features[z];
+			feature.style.display = (feature.tagName == "TR") ? "table-row" : "inline";
+		}
+	}
+}
+
+function toggleOptions() {
+	var options = document.getElementById("options");
+	if (options.style.display == "none") {
+		options.style.display = "inline";
+		document.getElementById("spriteEditor").style.display = "none";
+		document.getElementById("bintools").style.display = "none";
+		document.getElementById("audiotools").style.display = "none";
+		document.getElementById("foreEdit1"      ).value   = emulator.fillColor;  editFore1();
+		document.getElementById("foreEdit2"      ).value   = emulator.fillColor2; editFore2();
+		document.getElementById("blendEdit"      ).value   = emulator.blendColor; editBlend();
+		document.getElementById("backEdit"       ).value   = emulator.backgroundColor; editBack();
+		document.getElementById("buzzEdit"       ).value   = emulator.buzzColor;  editBuzz();
+		document.getElementById("silentEdit"     ).value   = emulator.quietColor; editSilent();
+		document.getElementById("shiftQuirks"    ).checked = emulator.shiftQuirks;
+		document.getElementById("loadStoreQuirks").checked = emulator.loadStoreQuirks;
+		document.getElementById("vfOrderQuirks"  ).checked = emulator.vfOrderQuirks;
+		document.getElementById("clipQuirks"     ).checked = emulator.clipQuirks;
+		document.getElementById("jumpQuirks"     ).checked = emulator.jumpQuirks;
+		document.getElementById("enableXO"       ).checked = emulator.enableXO;
+		document.getElementById("screenRotation" ).value   = emulator.screenRotation;
+	}
+	else {
+		options.style.display = "none";
+	}
+}
+
+////////////////////////////////////
+//
+//   Sprite editor stuff:
+//
+////////////////////////////////////
+
+function toggleSpriteEditor() {
+	var editor = document.getElementById("spriteEditor");
+	if (editor.style.display == "none") {
+		editor.style.display = "inline";
+		document.getElementById("options").style.display = "none";
+		document.getElementById("bintools").style.display = "none";
+		document.getElementById("audiotools").style.display = "none";
+		showPixels();
+	}
+	else {
+		editor.style.display = "none";
+	}
+}
+
+function drawPalette() {
+	var palette = document.getElementById("spriteEditorPalette");
+	var render = palette.getContext("2d");
+	render.clearRect(0, 0, palette.width, palette.height);
+	for(var z = 0; z < 4; z++) {
+		render.fillStyle = getColor(z);
+		render.fillRect(z * 50, 0, 50, 25);
+
+		render.fillStyle = "#000000";
+		render.lineWidth = 0;
+		// note: line drawing must occur at coordinates between pixels
+		// to render accurate, crisp lines. This is ridiculous.
+		if (z > 0) {
+			render.beginPath();
+			render.moveTo(z * 50 + 0.5, 0);
+			render.lineTo(z * 50 + 0.5, 25);
+			render.stroke();
+		}
+		if (z == selectedColor) {
+			render.beginPath();
+			if (z == 0) { render.rect(z * 50 + 1.5, 1.5, 47, 22); }
+			else        { render.rect(z * 50 + 2.5, 1.5, 46, 22); }
+			render.stroke();
+		}
+	}
+}
+
+function clickPalette(event) {
+	var rect = document.getElementById("spriteEditorPalette").getBoundingClientRect();
+	var mx = Math.floor((event.clientX - rect.left)/50);
+	selectedColor = Math.max(0, Math.min(mx, 3));
+	drawPalette();
+}
+
+function setSpriteEditorColor() {
+	var check = document.getElementById("spriteEditorColor");
+	var palette = document.getElementById("spriteEditorPalette");
+	enableColor = check.checked;
+	if (check.checked) {
+		palette.style.display = "inline";
+		drawPalette();
+	}
+	else {
+		selectedColor = 1;
+		palette.style.display = "none";
+		var maxBytes = largeSprite ? 32 : 15;
+		for(var z = maxBytes; z < 64; z++) { pixel[z] = 0; }
+	}
+	showPixels();
+	showHex();
+}
+
+function setSpriteEditorSize() {
+	var check = document.getElementById("spriteEditorSize");
+	var canvas = document.getElementById("draw");
+	if (check.checked) {
+		largeSprite = true;
+		canvas.width  = 25 * 16;
+		canvas.height = 25 * 16;
+		var newpixels = [];
+		for(var z = 0; z < 64; z++) { newpixels[z] = 0; }
+		for(var z = 0; z < 15; z++) {
+			newpixels[z * 2] = pixel[z];
+		}
+		if (enableColor) {
+			for(var z = 0; z < 15; z++) {
+				newpixels[32 + (z * 2)] = pixel[15 + z];
+			}
+		}
+		pixel = newpixels;
+	}
+	else {
+		largeSprite = false;
+		canvas.width  = 25 * 8;
+		canvas.height = 25 * 15;
+		var newpixels = [];
+		for(var z = 0; z < 64; z++) { newpixels[z] = 0; }
+		for(var z = 0; z < 15; z++) {
+			newpixels[z] = pixel[z*2];
+		}
+		if (enableColor) {
+			for(var z = 0; z < 15; z++) {
+				newpixels[15 + z] = pixel[32 + z*2];
+			}
+		}
+		pixel = newpixels;
+	}
+	showPixels();
+	showHex();
+}
+
+function showPixels() {
+	var canvas = document.getElementById("draw");
+	var render = canvas.getContext("2d");
+	render.fillStyle = emulator.backgroundColor;
+	render.fillRect(0, 0, canvas.width, canvas.height);
+	if (largeSprite) {
+		for(var row = 0; row < 16; row++) {
+			for(var col = 0; col < 16; col++) {
+				var index = row*2 + (col > 7 ? 1:0);
+				var mask  = (1 << (7-(col%8)));
+				var set1 = (pixel[index     ] & mask) != 0;
+				var set2 = (pixel[index + 32] & mask) != 0;
+				if (!enableColor) { set2 = 0; }
+				render.fillStyle = getColor(set1 + (2*set2));
+				render.fillRect(col * 25, row * 25, 25, 25);
+			}
+		}
+	}
+	else {
+		for(var row = 0; row < 15; row++) {
+			for(var col = 0; col < 8; col++) {
+				var mask = (1 << (7-col));
+				var set1 = (pixel[row     ] & mask) != 0;
+				var set2 = (pixel[row + 15] & mask) != 0;
+				if (!enableColor) { set2 = 0; }
+				render.fillStyle = getColor(set1 + (2*set2));
+				render.fillRect(col * 25, row * 25, 25, 25);
+			}
+		}
+	}
+}
+
+function showHex() {
+	var output = document.getElementById("spriteData");
+	var hex = "";
+	var maxBytes = largeSprite ? 32 : 15;
+	if (enableColor) { maxBytes *= 2; }
+	for(var z = 0; z < maxBytes; z++) {
+		var digits = pixel[z].toString(16).toUpperCase();
+		hex += "0x" + (digits.length == 1 ? "0"+digits : digits) + " ";
+		if (z % 8 == 7) { hex += "\n"; }
+	}
+	output.value = hex;
+}
+
+function editHex() {
+	var output = document.getElementById("spriteData");
+	var bytes = output.value.trim().split(new RegExp("\\s+"));
+	var maxBytes = largeSprite ? 32 : 15;
+	if (enableColor) { maxBytes *= 2; }
+	for(var z = 0; z < maxBytes; z++) {
+		if (z < bytes.length) {
+			var tok = bytes[z].trim();
+			var num = (tok.slice(0, 2) == "0b") ? parseInt(tok.slice(2),2) : parseInt(tok);
+			pixel[z] = isNaN(num) ? 0 : num;
+		}
+		else {
+			pixel[z] = 0;
+		}
+	}
+	showPixels();
+}
+
+function drag(event) {
+	if (mode == 0) { return; }
+	var rect = document.getElementById("draw").getBoundingClientRect();
+	var mx     = Math.floor((event.clientX - rect.left)/25);
+	var my     = Math.floor((event.clientY - rect.top )/25);
+	var dest   = largeSprite ? (my*2 + (mx > 7 ? 1:0)) : my;
+	var stride = largeSprite ? 32 : 15;
+	var src    = (128 >> (mx % 8));
+	if (mode == 1) {
+		// draw
+		if ((selectedColor & 1) != 0) { pixel[dest]          |=  src; }
+		else                          { pixel[dest]          &= ~src; }
+		if ((selectedColor & 2) != 0) { pixel[dest + stride] |=  src; }
+		else                          { pixel[dest + stride] &= ~src; }
+	}
+	else {
+		pixel[dest]          &= ~src; // erase
+		pixel[dest + stride] &= ~src;
+	}
+	showHex();
+	showPixels();
+}
+
+function release(event)    { mode = 0; drag(event); }
+function pressDraw(event)  { if (event.button == 2) {mode = 2;} else {mode = 1;} drag(event); }
+
+var largeSprite = false;
+var mode = 0;
+var enableColor = false;
+var selectedColor = 1;
+var pixel = [];
+for(var z = 0; z < 64; z++) { pixel[z] = 0; }
+
+var spriteCanvas = document.getElementById("draw");
+spriteCanvas.addEventListener("mousemove", drag, false);
+spriteCanvas.addEventListener("mousedown", pressDraw, false);
+spriteCanvas.addEventListener("mouseup"  , release, false);
+spriteCanvas.oncontextmenu = function(event) { drag(event); return false; };
+spriteCanvas.addEventListener("mouseout", release, false);
+var spriteEditorPalette = document.getElementById("spriteEditorPalette");
+spriteEditorPalette.addEventListener("click", clickPalette, false);
+
+////////////////////////////////////
+//
+//   Virtual Keypad
+//
+////////////////////////////////////
+
+function buttonDn(key) {
+	keyDown({ keyCode: keymap[key]});
+}
+function buttonUp(key) {
+	if (keymap[key] in emulator.keys) {
+		keyUp({ keyCode: keymap[key]});
+	}
+}
+
+for(var k = 0; k <= 0xF; k++) {
+	var hex = k.toString(16).toUpperCase();
+	var button = document.getElementById("0x" + hex);
+	button.onmousedown = buttonDn.bind(undefined, k);
+	button.onmouseup   = buttonUp.bind(undefined, k);
+	button.onmouseout  = buttonUp.bind(undefined, k);
+
+	button.ontouchstart = buttonDn.bind(undefined, k);
+	button.ontouchenter = buttonDn.bind(undefined, k);
+	button.ontouchleave = buttonUp.bind(undefined, k);
+}
+
+function toggleKeypad() {
+	var keypad = document.getElementById("keypad");
+	if (keypad.style.display == "none") {
+		keypad.style.display = "block";
+	}
+	else {
+		keypad.style.display = "none";
+	}
+}
+
+////////////////////////////////////
+//
+//   Debugger
+//
+////////////////////////////////////
+var curBreakName;
+
+var regNumFormat = {
+	"pc": "hex",
+	"i" : "hex",
+	0x0 : "hex",
+	0x1 : "hex",
+	0x2 : "hex",
+	0x3 : "hex",
+	0x4 : "hex",
+	0x5 : "hex",
+	0x6 : "hex",
+	0x7 : "hex",
+	0x8 : "hex",
+	0x9 : "hex",
+	0xA : "hex",
+	0xB : "hex",
+	0xC : "hex",
+	0xD : "hex",
+	0xE : "hex",
+	0xF : "hex"
+}
+
+function cycleNumFormat(register) {
+	var curFormat = regNumFormat[register];
+	if (!curFormat) {
+		return;
+	}
+
+	if (curFormat == "hex") {
+		regNumFormat[register] = "bin";
+	}
+	else if (curFormat == "bin") {
+		regNumFormat[register] = "dec";
+	}
+	else {
+		regNumFormat[register] = "hex";
+	}
+
+	haltBreakpoint(curBreakName);
+}
+
+function getLabel(address) {
+	var bestname = "hex-font";
+	var besta = 0;
+	for(var key in emulator.metadata.labels) {
+		var v = emulator.metadata.labels[key];
+		if ((v > besta) && (v <= address)) {
+			bestname = key;
+			besta = v;
+		}
+	}
+	if (besta == address) { return " (" + bestname + ")"; }
+	return " (" + bestname + " + " + (address - besta) + ")";
+}
+
+function formatAliases(id) {
+	var names = [];
+	for(var key in emulator.metadata.aliases) {
+		if (emulator.metadata.aliases[key] == id) { names.push(key); }
+	}
+	if (names.length == 0) { return ""; }
+	var ret = " (" + names[0];
+	for(var x = 1; x < names.length; x++) {
+		ret += ", " + names[x];
+	}
+	return ret + ")";
+}
+
+function haltBreakpoint(breakName) {
+	var button = document.getElementById("continueButton");
+	var regs   = document.getElementById("registerView");
+	button.style.display = "inline";
+	regs.style.display = "inline";
+	var regdump =
+		"<span>tick count: " + emulator.tickCounter + "</span><br>" +
+		"<span>breakpoint: " + breakName + "</span><br>" +
+		"<span onClick=\"cycleNumFormat('pc');\">pc := " + numericFormat(emulator.pc, regNumFormat["pc"]) + getLabel(emulator.pc) + "</span><br>" +
+		"<span onClick=\"cycleNumFormat('i');\">i := " + numericFormat(emulator.i, regNumFormat["i"]) + getLabel(emulator.i) + "</span><br>";
+	for(var k = 0; k <= 0xF; k++) {
+		var hex = k.toString(16).toUpperCase();
+		regdump += "<span onClick=\"cycleNumFormat('"+ k + "');\">v" + hex + " := " + numericFormat(emulator.v[k], regNumFormat[k]) + formatAliases(k) + "</span><br>";
+	}
+
+	regdump += "<br>inferred stack trace:<br>";
+	for(var x = 0; x < emulator.r.length; x++) {
+		regdump += hexFormat(emulator.r[x]) + getLabel(emulator.r[x]) + "<br>";
+	}
+
+	var dbg = emulator.metadata.dbginfo;
+
+	// scan backwards & forwards in memory as long as addrs map to nearby lines
+	var pcline = dbg.locs[emulator.pc];
+	var memlo = emulator.pc, memhi = emulator.pc;
+	while (dbg.locs[memlo - 1] > pcline - 8) memlo--;
+	while (dbg.locs[memhi + 1] < pcline + 8) memhi++;
+
+	var ind = memlo;
+	regdump += '<br><table class="debugger"><tr><td>addr</td><td>data</td><td style="width:40em">source</td></tr>\n';
+	for (var line = dbg.locs[memlo]; line <= dbg.locs[memhi]; line++) {
+		if (dbg.lines[line].match(/^\s*$/)) continue;  // skip empty lines
+		if (dbg.locs[ind] == line) {
+			regdump += dbg.locs[ind] == pcline ? '<tr class="debugger-searchline">' : '<tr>';
+			regdump += "<td>" + hexFormat(ind).slice(2) + "</td><td>";
+			for (; dbg.locs[ind] == line; ind++)
+				regdump += hexFormat(emulator.m[ind]).slice(2);
+			regdump += "</td>";
+		} else {
+			regdump += "<tr><td></td><td></td>"
+		}
+		regdump += "<td><pre>" + escapeHtml(dbg.lines[line]) + "</pre></td></tr>\n";
+	}
+
+	regs.innerHTML = regdump;
+	emulator.breakpoint = true;
+	curBreakName = breakName;
+}
+
+function clearBreakpoint() {
+	var button = document.getElementById("continueButton");
+	var regs   = document.getElementById("registerView");
+	button.style.display = "none";
+	regs.style.display = "none";
+	emulator.breakpoint = false;
+	curBreakName = undefined;
+}
+
+////////////////////////////////////
+//
+//   Decompiler
+//
+////////////////////////////////////
+
+function setMaskFormatOverride() {
+	var check = document.getElementById("maskOverride");
+	emulator.maskFormatOverride = check.checked;
+}
+
+function setNumericFormat() {
+	var val = document.getElementById("numericFormat").value;
+	emulator.numericFormatStr = val.length < 1 ? "default"  : val;
+}
+
+function toggleBinaryTools() {
+	var tools = document.getElementById("bintools");
+	document.getElementById("maskOverride").checked = emulator.maskFormatOverride;
+	document.getElementById("numericFormat").value = emulator.numericFormatStr;
+	if (tools.style.display == "none") {
+		tools.style.display = "inline";
+		document.getElementById("options").style.display = "none";
+		document.getElementById("spriteEditor").style.display = "none";
+		document.getElementById("audiotools").style.display = "none";
+	}
+	else {
+		tools.style.display = "none";
+	}
+}
+
+function decompileFile() {
+	document.getElementById("fileinput").click();
+}
+
+function decompileRequestLoad() {
+	var file = document.getElementById("fileinput").files[0];
+	var reader = new FileReader();
+
+	function actuallyLoad() {
+		var buff = reader.result;
+		var bytes = new Uint8Array(buff);
+		var disp = "";
+		if (bytes.length > 0) {
+			disp = hexFormat(bytes[0]);
+		}
+		for(var z = 1; z < bytes.length; z++) {
+			disp += ", " + hexFormat(bytes[z]);
+		}
+		document.getElementById("decompileInput").value = "[" + disp + "]";
+	}
+
+	reader.onload = actuallyLoad;
+	reader.readAsArrayBuffer(file);
+}
+
+function getDecompileData() {
+	var inData = document.getElementById("decompileInput").value;
+	inData = inData.replace("[", "");
+	inData = inData.replace("]", "");
+	inData = inData.split(",");
+	var buffer = [];
+	for(var z = 0; z < inData.length; z++) {
+		buffer[z] = parse(inData[z].trim());
+	}
+	return buffer;
+}
+
+function decompileRun() {
+	var buffer = getDecompileData();
+	runRom({ rom:buffer, breakpoints:{}, aliases:{}, labels:{} });
+}
+
+var decompileProgramLength = 0;
+
+function decompileStart() {
+	document.getElementById("decompileWork").style.display = "inline";
+	var buffer = getDecompileData();
+	var quirks = {};
+	quirks['shiftQuirks'    ] = emulator.shiftQuirks;
+	quirks['loadStoreQuirks'] = emulator.loadStoreQuirks;
+	quirks['vfOrderQuirks'  ] = emulator.vfOrderQuirks;
+	quirks['jumpQuirks'     ] = emulator.jumpQuirks;
+	analyzeInit(buffer, quirks);
+	decompileProgramLength = buffer.length;
+	window.setTimeout(decompileProcess, 0);
+}
+
+function decompileProcess() {
+	var finished = false;
+	for(var z = 0; z < 100; z++) {
+		finished |= analyzeWork();
+		if (finished) { break; }
+	}
+	if (finished) {
+		analyzeFinish();
+		document.getElementById("input").value = "# decompiled program:\n" + formatProgram(decompileProgramLength);
+		document.getElementById("decompileWork").style.display = "none";
+	}
+	else {
+		window.setTimeout(decompileProcess, 0);
+	}
+}
+
+
+////////////////////////////////////
+//
+//   Examples
+//
+////////////////////////////////////
+
+function loadExample() {
+	var v = document.getElementById("examples").value;
+	if (v == "") { return; }
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", v);
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState != 4 || xhr.status != 200) {
+			return;
+		}
+		var result = JSON.parse(xhr.responseText);
+		var stripped = result["content"].replace(/(?:\r\n|\r|\n)/g, "");
+		var decoded = window.atob(stripped);
+		document.getElementById("input").value = decoded;
+	}
+	xhr.send();
+}
+
+function listExamples() {
+	var xhr = new XMLHttpRequest();
+	var exampledir = "https://api.github.com/repos/JohnEarnest/Octo/contents/examples";
+	xhr.open("GET", exampledir);
+	xhr.onreadystatechange = function() {
+		if (xhr.readyState != 4 || xhr.status != 200) {
+			return;
+		}
+		var result = JSON.parse(xhr.responseText);
+		for(var index = 0; index < result.length; index++) {
+			var option = document.createElement("option");
+			option.text = result[index]["name"];
+			option.value = result[index]["url"];
+			document.getElementById("examples").add(option);
+		}
+	}
+	xhr.send();
+}
+
+listExamples();
+
+
+////////////////////////////////////
+//
+//   Audio Editor UI
+//
+////////////////////////////////////
+
+function toggleAudioEditor() {
+	var audio = document.getElementById("audiotools");
+	if (audio.style.display == "none") {
+		document.getElementById("options").style.display      = "none";
+		document.getElementById("spriteEditor").style.display = "none";
+		document.getElementById("bintools").style.display     = "none";
+		audio.style.display = "inline";
+		drawAudio();
+	}
+	else {
+		audio.style.display = "none";
+	}
+}
+
+function presetAudio() {
+	document.getElementById("audioPattern").value = document.getElementById("audioPreset").value;
+	audioPattern = parseAudio("audioPattern");
+	drawAudio();
+}
+
+function randomAudio() {
+	var ret = [];
+	for(var z = 0; z < 16; z++) {
+		ret[z] = Math.floor(Math.random() * 255);
+	}
+	audioPattern = ret;
+	document.getElementById("audioPattern").value = getAudioHex(audioPattern);
+	drawAudio();
+}
+
+function swapWaveforms(x, y) {
+	var a = document.getElementById(x).value;
+	var b = document.getElementById(y).value;
+	document.getElementById(x).value = b;
+	document.getElementById(y).value = a;
+	parseWaveforms();
+	drawAudio();
+}
+
+function shiftAudio(delta) {
+	var result = [];
+	for(var z = 0; z < 16; z++) {
+		var b = 0;
+		for(var index = 0; index < 8; index++) {
+			var sourceIndex = (index + delta + (z * 8)) & 127;
+			var sourceByte  = Math.floor(sourceIndex / 8);
+			var sourceBit   = 7 - Math.floor(sourceIndex % 8);
+			b = (b <<= 1) | ((audioPattern[sourceByte] >> sourceBit) & 1);
+		}
+		result[z] = b;
+	}
+	audioPattern = result;
+	document.getElementById("audioPattern").value = getAudioHex(audioPattern);
+	drawAudio();
+}
+
+function blendWaveform(func) {
+	function blend(target, dyad) {
+		var data = "";
+		for(var z = 0; z < audioPattern.length; z++) {
+			data += hexFormat(dyad(audioPattern[z], blendPattern[z]) & 0xFF) + " ";
+		}
+		document.getElementById(target).value = data;
+	}
+
+	if (func == 'xor') {
+		blend("audioPattern", function(a, b) { return a ^ b; });
+	}
+	if (func == 'and') {
+		blend("audioPattern", function(a, b) { return a & b; });
+	}
+	if (func == 'or') {
+		blend("audioPattern", function(a, b) { return a | b; });
+	}
+	if (func == 'not') {
+		blend("blendPattern", function(a, b) { return (~b); });
+	}
+	parseWaveforms();
+	drawAudio();
+}
+
+function generateWaveform() {
+	var canvas = document.getElementById("waveform");
+	var h = canvas.height;
+	var w = canvas.width;
+	var g = canvas.getContext("2d");
+	g.fillStyle = emulator.backgroundColor;
+	g.fillRect(0, 0, canvas.width, canvas.height);
+
+	// Samples are played at 4000 samples/second.
+	// 128 samples is (1 seconds / 4000 * 128) = .032 seconds.
+	// This also means that a full 128 bit pattern is ~ 2/60ths of a second.
+	// A sine wave at N hz would be given by sin(t * N * 2Pi).
+
+	var frequency = parseInt(document.getElementById("frequency").value);
+	var cutoff    = parseInt(document.getElementById("cutoff").value);
+
+	var word = 0;			
+	var index = 0;
+
+	for(var z = 0; z < 128; z++) {
+		var t = z * (1 / 4000);                        // time in seconds
+		var v = Math.sin(t * frequency * 2 * Math.PI); // sine wave
+		var s = Math.floor((v + 1) * 128);             // offset and scale
+		// draw some nice waveform displays
+		g.fillStyle = emulator.fillColor2;
+		g.fillRect(z*(w/128), h-(s*(h/256)), (w/128), s*(h/256));
+		if (s >= cutoff) {
+			g.fillStyle = emulator.fillColor;
+			g.fillRect(z*(w/128), h-(cutoff*(h/256)), (w/128), cutoff*(h/256));
+		}
+
+		// build up a bit vector
+		word = (word << 1) | ((s >= cutoff) ? 1 : 0);
+		if ((z % 8) == 7) {
+			generatedPattern[index++] = word;
+			word = 0;
+		}
+	}
+	document.getElementById("generatedPattern").value = getAudioHex(generatedPattern);
+}
+
+function parseAudio(id) {
+	var pattern = document.getElementById(id).value;
+	pattern = pattern.replace("[", "");
+	pattern = pattern.replace("]", "");
+	pattern = pattern.match(/\S+/g) || []
+	var buffer = [];
+	for(var z = 0; z < 16; z++) { buffer[z] = 0; }
+	for(var z = 0; z < Math.min(pattern.length, 16); z++) {
+		buffer[z] = parse(pattern[z].trim());
+	}
+	return buffer;
+}
+
+function parseWaveforms() {
+	blendPattern = parseAudio("blendPattern");
+	generatedPattern = parseAudio("generatedPattern");
+	audioPattern = parseAudio("audioPattern");
+}
+
+
+function editAudioHex(id)
+{
+	var data = parseAudio(id);
+	var empty = false;
+
+	if(document.getElementById(id).value.trim() == "") {
+		empty = true;
+	}
+	if(id == 'audioPattern') {
+		audioPattern = data;
+		drawAudio();
+		if(empty) {
+			document.getElementById(id).value =  getAudioHex(audioPattern);
+		}
+	} 
+	if(id == 'blendPattern') {
+		blendPattern = data;
+		if(empty) {
+			document.getElementById(id).value =  getAudioHex(blendPattern);
+		}
+	}
+	if(id == 'generatedPattern') {
+		generatedPattern = data;
+		if(empty) {
+			document.getElementById(id).value =  getAudioHex(generatedPattern);
+		}
+	}
+}
+
+function drawAudio() {
+	var canvas = document.getElementById("drawAudio");
+	var render = canvas.getContext("2d");
+	render.fillStyle = emulator.backgroundColor;
+	render.fillRect(0, 0, canvas.width, canvas.height);
+	render.fillStyle = emulator.fillColor;
+	
+	for(var z = 0; z < 8 * 16; z++) {
+		var a = Math.floor(z / 8);
+		var b = 7 - Math.floor(z % 8);
+		if (((audioPattern[a] >> b) & 1) == 0) { continue; }
+		render.fillRect(z * 2, 0, 2, 32);
+	}
+}
+
+function playAudio() {
+	// initialize sound if necessary
+	if (!audioSetup()) {
+		document.getElementById("audioError").innerHTML = "Your browser doesn't support HTML5 Audio!";
+		return;
+	}
+
+	// parse the sound length
+	var soundLength = parseInt(document.getElementById("time").value);
+	if (typeof soundLength != "number" || isNaN(soundLength)) {
+		document.getElementById("error").innerHTML = "Invalid Duration.";
+		return;
+	}
+
+	// parse the input string into a byte array, padding with zeros if necessary:
+	var buffer = parseAudio("audioPattern");
+
+	playPattern(soundLength, buffer);
+}
+
+function getAudioHex(buffer) {
+	var hex = "";
+	var maxBytes = 16;
+	for(var z = 0; z < maxBytes; z++) {
+		var digits = buffer[z].toString(16).toUpperCase();
+		hex += "0x" + (digits.length == 1 ? "0"+digits : digits) + " ";
+		if (z % 8 == 7) { hex += "\n"; }
+	}
+	return hex;
+}
+
+function dragAudio(event) {
+	if (mode == 0) { return; }
+	var rect = document.getElementById("drawAudio").getBoundingClientRect();
+	var mx   = Math.floor((event.clientX - rect.left)/2);
+	var dest = Math.floor(mx / 8);
+	var src  = 128 >> (mx % 8);
+	if (mode == 1) {
+		audioPattern[dest] |= src; // draw
+	}
+	else {
+		audioPattern[dest] &= ~src; // erase
+	}
+
+	document.getElementById("audioPattern").value = getAudioHex(audioPattern);
+	drawAudio();
+}
+
+function releaseAudio(event)    { mode = 0; dragAudio(event); }
+function pressDrawAudio(event)  { if (event.button == 2) {mode = 2;} else {mode = 1;} dragAudio(event); }
+
+var audioPattern = [];
+var blendPattern = [];
+var generatedPattern = [];
+
+function InitializeAudioEditor() {
+	for(var z = 0; z < 16; z++) { 
+		audioPattern[z] = 0;
+		blendPattern[z] = 0;
+	}
+	generateWaveform();
+	document.getElementById("audioPattern").value 	  =	getAudioHex(audioPattern);
+	document.getElementById("blendPattern").value     =	getAudioHex(blendPattern);
+	drawAudio();
+}
+InitializeAudioEditor();
+
+var audioCanvas = document.getElementById("drawAudio");
+audioCanvas.addEventListener("mousemove", dragAudio, false);
+audioCanvas.addEventListener("mousedown", pressDrawAudio, false);
+audioCanvas.addEventListener("mouseup"  , releaseAudio, false);
+audioCanvas.oncontextmenu = function(event) { dragAudio(event); return false; };
+audioCanvas.addEventListener("mouseout", releaseAudio, false);
+
+/*! @source http://purl.eligrey.com/github/FileSaver.js/blob/master/FileSaver.js */
+var saveAs=saveAs||function(e){"use strict";if(typeof e==="undefined"||typeof navigator!=="undefined"&&/MSIE [1-9]\./.test(navigator.userAgent)){return}var t=e.document,n=function(){return e.URL||e.webkitURL||e},r=t.createElementNS("http://www.w3.org/1999/xhtml","a"),o="download"in r,i=function(e){var t=new MouseEvent("click");e.dispatchEvent(t)},a=/constructor/i.test(e.HTMLElement),f=/CriOS\/[\d]+/.test(navigator.userAgent),u=function(t){(e.setImmediate||e.setTimeout)(function(){throw t},0)},d="application/octet-stream",s=1e3*40,c=function(e){var t=function(){if(typeof e==="string"){n().revokeObjectURL(e)}else{e.remove()}};setTimeout(t,s)},l=function(e,t,n){t=[].concat(t);var r=t.length;while(r--){var o=e["on"+t[r]];if(typeof o==="function"){try{o.call(e,n||e)}catch(i){u(i)}}}},p=function(e){if(/^\s*(?:text\/\S*|application\/xml|\S*\/\S*\+xml)\s*;.*charset\s*=\s*utf-8/i.test(e.type)){return new Blob([String.fromCharCode(65279),e],{type:e.type})}return e},v=function(t,u,s){if(!s){t=p(t)}var v=this,w=t.type,m=w===d,y,h=function(){l(v,"writestart progress write writeend".split(" "))},S=function(){if((f||m&&a)&&e.FileReader){var r=new FileReader;r.onloadend=function(){var t=f?r.result:r.result.replace(/^data:[^;]*;/,"data:attachment/file;");var n=e.open(t,"_blank");if(!n)e.location.href=t;t=undefined;v.readyState=v.DONE;h()};r.readAsDataURL(t);v.readyState=v.INIT;return}if(!y){y=n().createObjectURL(t)}if(m){e.location.href=y}else{var o=e.open(y,"_blank");if(!o){e.location.href=y}}v.readyState=v.DONE;h();c(y)};v.readyState=v.INIT;if(o){y=n().createObjectURL(t);setTimeout(function(){r.href=y;r.download=u;i(r);h();c(y);v.readyState=v.DONE});return}S()},w=v.prototype,m=function(e,t,n){return new v(e,t||e.name||"download",n)};if(typeof navigator!=="undefined"&&navigator.msSaveOrOpenBlob){return function(e,t,n){t=t||e.name||"download";if(!n){e=p(e)}return navigator.msSaveOrOpenBlob(e,t)}}w.abort=function(){};w.readyState=w.INIT=0;w.WRITING=1;w.DONE=2;w.error=w.onwritestart=w.onprogress=w.onwrite=w.onabort=w.onerror=w.onwriteend=null;return m}(typeof self!=="undefined"&&self||typeof window!=="undefined"&&window||this.content);if(typeof module!=="undefined"&&module.exports){module.exports.saveAs=saveAs}else if(typeof define!=="undefined"&&define!==null&&define.amd!==null){define([],function(){return saveAs})}
+
+"use strict";
+
+////////////////////////////////////
+//
+//   SVG export:
+//
+////////////////////////////////////
+
+function saveScreenshot() {
+	var text = screenToSVG(emulator, 320, 160);
+	var blob = new Blob([text], {type: "image/svg+xml"});
+	saveAs(blob, "screenshot.svg");
+}
+
+function getSVGColor(id) {
+	switch(id) {
+		case 0: return emulator.backgroundColor;
+		case 1: return emulator.fillColor;
+		case 2: return emulator.fillColor2;
+		case 3: return emulator.blendColor;
+	}
+	throw "invalid color: " + id;
+}
+
+function screenToSVG(emulator, width, height) {
+	var max    = emulator.hires ? 128*64 : 64*32;
+	var stride = emulator.hires ? 128    : 64;
+	var xsize = width  / stride;
+	var ysize = height / (stride/2);
+
+	// do this in the most dumb, straightforward way possible:
+	var r = "";
+	r += '<svg xmlns="http://www.w3.org/2000/svg" version="1.0">\n'
+	for(var z = 0; z < max; z++) {
+		r += '<rect';
+		r += ' x="' + (Math.floor(z%stride)*xsize) + '"';
+		r += ' y="' + (Math.floor(z/stride)*ysize) + '"';
+		r += ' width="' + (xsize) + '"';
+		r += ' height="' + (ysize) + '"';
+		r += ' fill="' + (getSVGColor(emulator.p[0][z] + (emulator.p[1][z] * 2))) + '"';
+		r += ' stroke="none"';
+		r += '/>\n';
+	}
+	r += '</svg>';
+	return r;
+}
+
+"use strict";
+
+////////////////////////////////////
+//
+//   .ch8 file export:
+//
+////////////////////////////////////
+
+function saveBinaryFile() {
+
+	// Compile given Octo source and check for error
+	var prog = compile();
+	if (prog === null) {
+		return;
+	}
+
+	// ROM data must be saved as an array of unsigned 8-bit integers. Calling
+	// saveAs on a Blob of a non-TypedArray object will only write text data to
+	// the file.
+	var rawData = new Uint8Array(prog.rom);
+	var blob = new Blob([rawData], {type: "application/octet-stream"});
+	saveAs(blob, "output.ch8");
+
+}
+</script>
+<script>window.onload = runGist();</script>

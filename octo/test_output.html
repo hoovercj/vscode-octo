@@ -1,0 +1,370 @@
+<html>
+
+<head>
+    <title>Octo</title>
+    <link rel="stylesheet" href="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/css/styles.css">
+</head>
+
+<body>
+    <div class="menubar">
+        <a href="https://github.com/JohnEarnest/Octo"><img class="header-icon" src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/images/logo.png" /></a>
+        <button type="button" onClick="run()">Reset</button>
+        <select id="framerate" onchange="framerate()">
+            <option value="7">7 Cycles/Frame</option>
+            <option value="15">15 Cycles/Frame</option>
+            <option value="20" selected="selected">20 Cycles/Frame</option>
+            <option value="30">30 Cycles/Frame</option>
+            <option value="100">100 Cycles/Frame</option>
+            <option value="200">200 Cycles/Frame</option>
+            <option value="500">500 Cycles/Frame</option>
+            <option value="1000">1000 Cycles/Frame</option>
+        </select>
+        <button title="toggle keypad" src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/images/keypad.png" onclick="toggleKeypad()" style="padding-left: 10px;">Toggle keypad</button>
+        <button title="save a screenshot" src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/images/screenshot.png" onclick="saveScreenshot()" style="padding-left: 10px;">Save screenshot</button>
+        <button id="continueButton" title="continue" src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/images/continue.png" onclick="clearBreakpoint()" style="display: none;padding-left: 10px;">Continue</button>
+        <!--<button type="button" onClick="toggleOptions();">Options</button>-->
+        <!--<button type="button" onClick="toggleManual();">Manual</button>-->
+        <!--<button type="button" onClick="compile()">Compile</button>-->
+        <!--<button type="button" onClick="share()">Share</button>-->
+        <button type="button" onClick="toggleSpriteEditor();">Sprite Editor</button>
+        <!--<button type="button" onClick="toggleAudioEditor();" class="xofeature" style="display:none" class="xofeature" style="display:none">Audio Editor</button>
+        <button type="button" onClick="toggleBinaryTools();">Binary Tools</button>-->
+    </div>
+
+    <div class="flex-container row">
+        <div id="emulator" class="canv">
+            <canvas id="target" width="640" height="320"></canvas>
+        </div>
+        <div id="spriteEditor" class="rightpanel" style="display:none">
+            <h3>Sprite Editor</h3>
+            <div>
+                Click and drag to draw.<br/> Right-click and drag to erase.<br/><br/>
+                <input type="checkbox" id="spriteEditorSize" onchange="setSpriteEditorSize();">
+                <label for="spriteEditorSize">16x16 mode</label>
+                <br/>
+                <div class="xofeature" style="display:none">
+                    <input type="checkbox" id="spriteEditorColor" onchange="setSpriteEditorColor();">
+                    <label for="spriteEditorColor">Color mode</label>
+                </div>
+                <br/>
+                <canvas id="spriteEditorPalette" width="200px" height="25px" style="display:none;"></canvas><br/>
+                <canvas id="draw" width="200" height="375" style="border:1px solid;"></canvas><br/>
+                <textarea id="spriteData" rows="10" cols="25" onchange="editHex();" onkeyup="editHex();"></textarea>
+            </div>
+        </div>
+        <table border="0" id="keypad" style="display: none;">
+            <tr>
+                <td class="key" id="0x1">1</td>
+                <td class="key" id="0x2">2</td>
+                <td class="key" id="0x3">3</td>
+                <td class="key" id="0xC">C</td>
+            </tr>
+            <tr>
+                <td class="key" id="0x4">4</td>
+                <td class="key" id="0x5">5</td>
+                <td class="key" id="0x6">6</td>
+                <td class="key" id="0xD">D</td>
+            </tr>
+            <tr>
+                <td class="key" id="0x7">7</td>
+                <td class="key" id="0x8">8</td>
+                <td class="key" id="0x9">9</td>
+                <td class="key" id="0xE">E</td>
+            </tr>
+            <tr>
+                <td class="key" id="0xA">A</td>
+                <td class="key" id="0x0">0</td>
+                <td class="key" id="0xB">B</td>
+                <td class="key" id="0xF">F</td>
+            </tr>
+        </table>
+        <textarea id="input" spellcheck="false" style="display:none"># Chip8 is a virtual machine designed in 1977 for programming video games.
+# Octo is a high level assembler, disassembler and simulator for Chip8.
+# Click 'Run' and then press ASWD to move the sprite around the screen.
+# Click the Octo logo for source, documentation and examples.
+
+:alias px v3
+:alias py v4
+
+: main
+	# px := random 0b0011111
+	# py := random 0b0001111
+	px := 18
+	py := 29
+	i  := person
+	sprite px py 8
+
+	loop
+		# erase the player, update its position and then redraw:
+		sprite px py 8
+		v0 := 5   if v0 key then py += -1 # keyboard W
+		v0 := 8   if v0 key then py +=  1 # keyboard S
+		v0 := 7   if v0 key then px += -1 # keyboard A
+		v0 := 9   if v0 key then px +=  1 # keyboard D
+		sprite px py 8
+
+		# lock the framerate of this program via the delay timer:
+		loop
+			vf := delay
+			if vf != 0 then
+		again
+		vf := 3
+		delay := vf
+	again
+
+	loop
+		# erase the player, update its position and then redraw:
+		sprite px py 8
+		v0 := 5   if v0 key then py += -1 # keyboard W
+		v0 := 8   if v0 key then py +=  1 # keyboard S
+		v0 := 7   if v0 key then px += -1 # keyboard A
+		v0 := 9   if v0 key then px +=  1 # keyboard D
+		sprite px py 8
+
+		# lock the framerate of this program via the delay timer:
+		loop
+			vf := delay
+			if vf != 0 then
+		again
+		vf := 3
+		delay := vf
+	again
+
+: person
+	0x70 0x70 0x20 0x70 0xA8 0x20 0x50 0x50
+</textarea>
+        <!--<textarea id="input" spellcheck="false" style="display:none"># Chip8 is a virtual machine designed in 1977 for programming video games.
+# Octo is a high level assembler, disassembler and simulator for Chip8.
+# Click 'Run' and then press ASWD to move the sprite around the screen.
+# Click the Octo logo for source, documentation and examples.
+
+:alias px v3
+:alias py v4
+
+: main
+    px := random 0b0011111
+    py := random 0b0001111
+    i  := person
+    sprite px py 8
+
+    loop
+        # erase the player, update its position and then redraw:
+        sprite px py 8
+        v0 := 5   if v0 key then py += -1 # keyboard W
+        v0 := 8   if v0 key then py +=  1 # keyboard S
+        v0 := 7   if v0 key then px += -1 # keyboard A
+        v0 := 9   if v0 key then px +=  1 # keyboard D
+        sprite px py 8
+
+        # lock the framerate of this program via the delay timer:
+        loop
+            vf := delay
+            if vf != 0 then
+        again
+        vf := 3
+        delay := vf
+    again
+
+    loop
+        # erase the player, update its position and then redraw:
+        sprite px py 8
+        v0 := 5   if v0 key then py += -1 # keyboard W
+        v0 := 8   if v0 key then py +=  1 # keyboard S
+        v0 := 7   if v0 key then px += -1 # keyboard A
+        v0 := 9   if v0 key then px +=  1 # keyboard D
+        sprite px py 8
+
+        # lock the framerate of this program via the delay timer:
+        loop
+            vf := delay
+            if vf != 0 then
+        again
+        vf := 3
+        delay := vf
+    again
+
+: person
+    0x70 0x70 0x20 0x70 0xA8 0x20 0x50 0x50
+        </textarea>-->
+    </div>
+    <div id="debugger-row" class="flex-container row">
+        <div class="debugger" id="registerView" style="display:none">
+            register display.
+        </div>
+        <div class="debugger" id="stacktraceView" style="display:none">
+            stack display.
+        </div>
+    </div>
+
+    <!--<div id="options" class="rightpanel" style="display:none">
+        <h3>Colors</h3>
+        <table border=0>
+            <tr>
+                <td>Background</td>
+                <td><input type="text" size="7" id="backEdit" onchange="editBack();" onkeyup="editBack();"></td>
+                <td bgcolor="0xFF0000" id="backSample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            </tr>
+            <tr>
+                <td>Foreground 1</td>
+                <td><input type="text" size="7" id="foreEdit1" onchange="editFore1();" onkeyup="editFore1();"></td>
+                <td bgcolor="0xFF0000" id="foreSample1">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            </tr>
+            <tr class="xofeature" style="display:none">
+                <td>Foreground 2 (XO-Chip)</td>
+                <td><input type="text" size="7" id="foreEdit2" onchange="editFore2();" onkeyup="editFore2();"></td>
+                <td bgcolor="0xFF0000" id="foreSample2">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            </tr>
+            <tr class="xofeature" style="display:none">
+                <td>Blended (XO-Chip)</td>
+                <td><input type="text" size="7" id="blendEdit" onchange="editBlend();" onkeyup="editBlend();"></td>
+                <td bgcolor="0xFF0000" id="blendSample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            </tr>
+            <tr>
+                <td>Buzzer</td>
+                <td><input type="text" size="7" id="buzzEdit" onchange="editBuzz();" onkeyup="editBuzz();"></td>
+                <td bgcolor="0xFF0000" id="buzzSample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            </tr>
+            <tr>
+                <td>Silence</td>
+                <td><input type="text" size="7" id="silentEdit" onchange="editSilent();" onkeyup="editSilent();"></td>
+                <td bgcolor="0xFF0000" id="silentSample">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
+            </tr>
+        </table>
+        <select id="palettePreset" onChange="palettePreset();">
+                    <option value="">Palette Presets...</option>
+                    <option value='classic'>Octo Classic&#8482;</option>
+                    <option value='["#FF0000","#FFFF00","#FFFFFF","#000000","#990000","#330000"]'>Hot Dog Stand</option>
+                    <option value='["#306230","#8BAC0F","#9BBC0F","#0F380F","#333333","#000000"]'>Pea Soup LCD</option>
+                    <option value='["#000000","#FFFFFF","#666666","#AAAAAA","#666666","#000000"]'>Grayscale</option>
+                    <option value='["#00FF00","#FF0000","#FFFF00","#000000","#999900","#333300"]'>CGA 0</option>
+                    <option value='["#FF00FF","#00FFFF","#FFFFFF","#000000","#990099","#330033"]'>CGA 1</option>
+                </select>
+
+        <h3>Misc</h3>
+        Screen Rotation:
+        <select id="screenRotation" onChange="editRotation();">
+                    <option value="0" selected="selected">0</option>
+                    <option value="90">90</option>
+                    <option value="180">180</option>
+                    <option value="270">270</option>
+                </select>
+
+        <h3>Compatibility</h3>
+        <table>
+            <tr>
+                <td><input type="checkbox" id="shiftQuirks" onchange="setQuirks('shiftQuirks');"></td>
+                <td><tt>&lt;&lt;=</tt> and <tt>&gt;&gt;=</tt> modify <tt>vx</tt> in place and ignore <tt>vy</tt>.</td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" id="loadStoreQuirks" onchange="setQuirks('loadStoreQuirks');"></td>
+                <td><tt>load</tt> and <tt>store</tt> operations leave <tt>i</tt> unchanged.</td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" id="vfOrderQuirks" onchange="setQuirks('vfOrderQuirks');"></td>
+                <td>arithmetic results write to <tt>vf</tt> after status flag.</td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" id="clipQuirks" onchange="setQuirks('clipQuirks');"></td>
+                <td>clip sprites at screen edges instead of wrapping</td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" id="jumpQuirks" onchange="setQuirks('jumpQuirks');"></td>
+                <td>4 high bits of target address determines the offset register of <tt>jump0</tt> instead of <tt>v0</tt></td>
+            </tr>
+            <tr>
+                <td><input type="checkbox" id="enableXO" onchange="setEnableXO();"></td>
+                <td>enable XO-Chip extended instruction set.</td>
+            </tr>
+        </table>
+    </div>-->
+
+    <!--<div id="bintools" class="rightpanel" style="display:none">
+        <h3>Binary Tools</h3>
+        Note that decompilation can be slow.<br/> Enter a byte array:<br/>
+        <textarea id="decompileInput" rows="6" cols="40">[0xD0, 0x15, 0x70, 0x04, 0x40, 0x40, 0x71, 0x05, 0x40, 0x40, 0x60, 0x00, 0x12, 0x00]</textarea><br/>
+        <button type="button" onclick="decompileStart()">Decompile</button>
+        <button type="button" onclick="decompileRun()">Run</button>
+        <button type="button" onclick="decompileFile()">Open File...</button>
+        <input type="file" id="fileinput" onchange="decompileRequestLoad()" style="display:none">
+        <h3>Decompiler Options</h3>
+        <select id="numericFormat" onchange="setNumericFormat();">
+                    <option value='default'>Numeric Format</option>
+                    <option value='hex'>Hexadecimal</option>
+                    <option value='dec'>Decimal</option>
+                    <option value='bin'>Binary</option>
+                </select>
+        <table>
+            <tr>
+                <td><input type="checkbox" id="maskOverride" onchange="setMaskFormatOverride();"></td>
+                <td>Format the numeric operand of <tt>random n</tt> as binary</td>
+            </tr>
+        </table>
+        <h3>File Output</h3>
+        <button type="button" onclick="saveBinaryFile()">Save .ch8 File</button>
+    </div>-->
+
+    <!--<div id="audiotools" class="rightpanel" style="display:none">
+        <h3>Audio Editor</h3>
+        Enter a pattern of 16 bytes:<br>
+        <canvas id="drawAudio" width="256" height="32"></canvas>
+        </br>
+        <textarea id="audioPattern" rows="4" cols="40" spellcheck="false" onchange="editAudioHex('audioPattern');" onkeyup="editAudioHex('audioPattern');"></textarea><br>
+        <select id="audioPreset" onchange="presetAudio();">
+                    <option value="">Choose a preset...</option>
+                    <option value="0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00">1/2 Duty Square Wave</option>
+                    <option value="0xFF 0xFF 0xFF 0xFF 0x00 0x00 0x00 0x00 0xFF 0xFF 0xFF 0xFF 0x00 0x00 0x00 0x00">1/4 Duty Square Wave</option>
+                    <option value="0xFF 0xFF 0x00 0x00 0xFF 0xFF 0x00 0x00 0xFF 0xFF 0x00 0x00 0xFF 0xFF 0x00 0x00">1/8 Duty Square Wave</option>
+                    <option value="0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00">1/16 Duty Square Wave</option>
+                    <option value="0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0">1/32 Duty Square Wave</option>
+                    <option value="0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC">1/64 Duty Square Wave</option>
+                    <option value="0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA">1/128 Duty Square Wave</option>
+                    <option value="0x10 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x10 0x00 0x00 0x00 0x00 0x00 0x00 0x00">High Grind</option>
+                    <option value="0xAA 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0xAA 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Medium Grind</option>
+                    <option value="0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Low Grind</option>
+                    <option value="0xF0 0xF0 0xF0 0xF0 0xcc 0xcc 0xcc 0xcc 0xF0 0xF0 0xF0 0xF0 0xcc 0xcc 0xcc 0xcc">Doorbell</option>
+                    <option value="0x55 0xAA 0x55 0xAA 0x55 0xAA 0x55 0xAA 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Gurgle</option>
+                    <option value="0x02 0xCD 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Click</option>
+                    <option value="0xFF 0x80 0x3F 0xE0 0x0F 0xF8 0x03 0xFF 0x00 0x7F 0xC0 0x8E 0x38 0xE3 0x8E 0x38">A5</option>
+                </select>
+        <button onclick="randomAudio();">Random</button>
+        <button onclick="shiftAudio(1);">&lt;</button>
+        <button onclick="shiftAudio(-1);">&gt;</button>
+        <br> Duration (1/60ths of a second): <input id="time" type="text" size="4" value="30">
+        <button onclick="playAudio();">Play</button>
+        <div id="audioerror" style="color: red;"></div>
+        <h3>Waveform Blending</h3>
+        Combine this waveform with the one above.<br>
+        <textarea id="blendPattern" rows="4" cols="40" spellcheck="false" onchange="editAudioHex('blendPattern');" onkeyup="editAudioHex('blendPattern');"></textarea><br>
+        <button type="button" onclick="blendWaveform('xor');">XOR</button>
+        <button type="button" onclick="blendWaveform('and');">AND</button>
+        <button type="button" onclick="blendWaveform('or');">OR</button>
+        <button type="button" onclick="blendWaveform('not');">NOT (this pattern)</button>
+        <button type="button" onclick="swapWaveforms('blendPattern', 'audioPattern');">Swap</button>
+        <h3>Tone Generator</h3>
+        <canvas id="waveform" width="256" height="64"></canvas><br> Freq. (Hz): <input id="frequency" type="text" size="4" value="440" onchange="generateWaveform();" onkeyup="generateWaveform();">        Cutoff: <input id="cutoff" type="text" size="4" value="128" onchange="generateWaveform();" onkeyup="generateWaveform();">
+        <button type="button" onclick="swapWaveforms('generatedPattern', 'audioPattern');">Swap</button>
+        <br><textarea id="generatedPattern" rows="4" cols="40" spellcheck="false" onchange="editAudioHex('generatedPattern');"
+            onkeyup="editAudioHex('generatedPattern');"></textarea>
+    </div>-->
+
+    <div>
+        <textarea id="output" style="display:none;" rows="6" cols="80"></textarea>
+    </div>
+    <div class="statusbar"><p id="status"></p></div>
+
+    <!--<div class="lightbox" style="display:none" id="decompileWork">
+        <img src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/images/load.gif" class="centericon" />
+    </div>-->
+
+    <script src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/js/compiler.js"></script>
+    <script src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/js/decompiler.js"></script>
+    <script src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/js/emulator.js"></script>
+    <script src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/js/shared.js"></script>
+    <script src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/js/octo.js"></script>
+    <script src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/js/filesaver.js"></script>
+    <script src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/js/screenshot.js"></script>
+    <script src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/js/ch8export.js"></script>
+    <script>window.onload = run();</script>
+</body>
+
+</html>

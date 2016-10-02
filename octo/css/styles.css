@@ -1,0 +1,145 @@
+html, body {
+    padding: 0px;
+    margin-bottom: 50px;
+    font-family: Courier New,Courier,Lucida Sans Typewriter,Lucida Typewriter,monospace;
+}
+
+.menubar {
+    width: 100%;
+    text-align: center;
+    background-color: black;
+    color: white;
+    padding-top: 10px;
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
+
+.header-icon {
+    padding-right: 30px;
+    vertical-align: middle;
+}
+
+textarea {
+    font-family: monospace;
+}
+input[type="text"] {
+    font-family: monospace;
+}
+
+#keypad {
+    width: 164px;
+    margin: 15px;
+}
+
+td.key {
+    height: 40px;
+    width:  40px;
+    vertical-align: center;
+    text-align: center;
+    color: black;
+    background-color: white;
+    font-family: sans-serif;
+    font-weight: bold;
+    border: 1px solid black;
+
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+td.key:active,
+td.key.active {
+    color: white;
+    background-color: black;
+    border: 1px solid white;
+}
+
+#debugger-row {
+    background: white;
+}
+div.debugger {
+    /*position: fixed;
+    top: 100px;
+    left: 40px;*/
+    padding: 20px;
+    font-family: monospace;
+    color: black;
+    overflow-x: auto;
+    white-space: nowrap;
+    width: 100%;
+}
+table.debugger {
+    font-family: monospace;
+    color: black;
+}
+tr.debugger-searchline {
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+body {
+    margin: 0;
+    padding:0;
+}
+
+.statusbar {
+    text-align:center;
+    vertical-align: center;
+    background-color:black;
+    color:white;
+    position:fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+h3 {
+    color:white;
+    background-color:black;
+    margin: 3px;
+}
+
+.flex-container {
+   display: -webkit-flex;
+   display: flex;
+   -webkit-flex-direction: column;
+   flex-direction: column;
+   -webkit-align-items: center;
+   align-items: center;
+   -webkit-justify-content: center;
+   justify-content: center;
+   margin: 20px;
+}
+
+.row {
+   -webkit-flex-direction: row;
+   flex-direction: row;
+}
+
+#spriteEditor {
+    text-align: center;
+    margin: 20px;
+}
+
+#draw {
+    display: inline-block;
+    margin: 20px;
+}
+
+
+/*#debugger-divider {
+    width: 1;
+    height: 55%;
+    margin: 0px;
+}*/
+
+@media(max-width:767px) {
+    .row {
+        -webkit-flex-direction: column;
+        flex-direction: column
+    }
+
+    #debugger-divider {
+        height: 1;
+        width: 100%;
+    }
+}
