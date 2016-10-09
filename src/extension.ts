@@ -141,7 +141,7 @@ class OctoDocumentContentProvider implements TextDocumentContentProvider {
             .then(document => {
                 var text = document.getText().replace(/(css\/|images\/|js\/)/g, `${this.getOctoPath()}/$1`);
                 text = text.replace('{{SOURCE}}', source);
-                fs.writeFile(this.getOctoPath('test_output.html'), text);
+                // fs.writeFile(this.getOctoPath('test_output.html'), text);
                 return text;
             });
         });
