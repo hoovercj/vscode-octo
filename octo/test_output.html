@@ -2,12 +2,12 @@
 
 <head>
     <title>Octo</title>
-    <link rel="stylesheet" href="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/css/styles.css">
+    <link rel="stylesheet" href="c:\Users\cohoov\Documents\GitHub\vscode-octo\octo/css/styles.css">
 </head>
 
 <body>
     <div class="menubar">
-        <a href="https://github.com/JohnEarnest/Octo"><img class="header-icon" src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/images/logo.png" /></a>
+        <a href="https://github.com/JohnEarnest/Octo"><img class="header-icon" src="c:\Users\cohoov\Documents\GitHub\vscode-octo\octo/images/logo.png" /></a>
         <button type="button" onClick="run()">Reset</button>
         <select id="framerate" onchange="framerate()">
             <option value="7">7 Cycles/Frame</option>
@@ -19,9 +19,9 @@
             <option value="500">500 Cycles/Frame</option>
             <option value="1000">1000 Cycles/Frame</option>
         </select>
-        <button title="toggle keypad" src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/images/keypad.png" onclick="toggleKeypad()" style="padding-left: 10px;">Toggle keypad</button>
-        <button title="save a screenshot" src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/images/screenshot.png" onclick="saveScreenshot()" style="padding-left: 10px;">Save screenshot</button>
-        <button id="continueButton" title="continue" src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/images/continue.png" onclick="clearBreakpoint()" style="display: none;padding-left: 10px;">Continue</button>
+        <button title="toggle keypad" src="c:\Users\cohoov\Documents\GitHub\vscode-octo\octo/images/keypad.png" onclick="toggleKeypad()" style="padding-left: 10px;">Toggle keypad</button>
+        <button title="save a screenshot" src="c:\Users\cohoov\Documents\GitHub\vscode-octo\octo/images/screenshot.png" onclick="saveScreenshot()" style="padding-left: 10px;">Save screenshot</button>
+        <button id="continueButton" title="continue" src="c:\Users\cohoov\Documents\GitHub\vscode-octo\octo/images/continue.png" onclick="clearBreakpoint()" style="display: none;padding-left: 10px;">Continue</button>
         <!--<button type="button" onClick="toggleOptions();">Options</button>-->
         <!--<button type="button" onClick="toggleManual();">Manual</button>-->
         <!--<button type="button" onClick="compile()">Compile</button>-->
@@ -89,8 +89,8 @@
 : main
 	# px := random 0b0011111
 	# py := random 0b0001111
-	px := 18
-	py := 29
+	px := 8
+	py := 8
 	i  := person
 	sprite px py 8
 
@@ -353,17 +353,17 @@
     <div class="statusbar"><p id="status"></p></div>
 
     <!--<div class="lightbox" style="display:none" id="decompileWork">
-        <img src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/images/load.gif" class="centericon" />
+        <img src="c:\Users\cohoov\Documents\GitHub\vscode-octo\octo/images/load.gif" class="centericon" />
     </div>-->
 
-    <script src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/js/compiler.js"></script>
-    <script src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/js/decompiler.js"></script>
-    <script src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/js/emulator.js"></script>
-    <script src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/js/shared.js"></script>
-    <script src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/js/octo.js"></script>
-    <script src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/js/filesaver.js"></script>
-    <script src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/js/screenshot.js"></script>
-    <script src="c:\Users\cohoov\Documents\GitHub\octo-syntax\octo-language\octo/js/ch8export.js"></script>
+    <script src="c:\Users\cohoov\Documents\GitHub\vscode-octo\octo/js/compiler.js"></script>
+    <script src="c:\Users\cohoov\Documents\GitHub\vscode-octo\octo/js/decompiler.js"></script>
+    <script src="c:\Users\cohoov\Documents\GitHub\vscode-octo\octo/js/emulator.js"></script>
+    <script src="c:\Users\cohoov\Documents\GitHub\vscode-octo\octo/js/shared.js"></script>
+    <script src="c:\Users\cohoov\Documents\GitHub\vscode-octo\octo/js/octo.js"></script>
+    <script src="c:\Users\cohoov\Documents\GitHub\vscode-octo\octo/js/filesaver.js"></script>
+    <script src="c:\Users\cohoov\Documents\GitHub\vscode-octo\octo/js/screenshot.js"></script>
+    <script src="c:\Users\cohoov\Documents\GitHub\vscode-octo\octo/js/ch8export.js"></script>
     <script>window.onload = run();</script>
 </body>
 
