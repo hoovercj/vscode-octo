@@ -43,7 +43,113 @@
             "language": "octo",
             "scopeName": "source.octo",
             "path": "./syntaxes/octo.tmLanguage"
-        }]
+        }],
+        "configuration": {
+            "type": "object",
+            "title": "Settings for Haskell projects for ghc-mod",
+            "properties": {
+                "octo.shiftQuirks": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "<<= and >>= modify vx in place and ignore vy."
+                },
+                "octo.loadStoreQuirks": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "load and store operations leave i unchanged."
+                },
+                "octo.vfOrderQuirks": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "arithmetic results write to vf after status flag."
+                },
+                "octo.clipQuirks": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "clip sprites at screen edges instead of wrapping."
+                },
+                "octo.jumpQuirks": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "4 high bits of target address determines the offset register of jump0 instead of v0."
+                },
+                "octo.enableXO": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "enable XO-Chip extended instruction set."
+                },
+                "octo.color.theme": {
+                    "type": "string",
+                    "default": "OctoClassic",
+                    "description": "A color scheme for the emulator, pixel canvas, etc. Choose an existing theme, or choose 'Custom' and build your own.",
+                       "enum": [
+                        "OctoClassic",
+                        "HotDogStand",
+                        "PeaSoupLcd",
+                        "Grayscale",
+                        "CGA0",
+                        "CGA1",
+                        "Custom"
+                    ]
+                },
+                "octo.color.backgroundColor": {
+                    "type": "string",
+                    "default": "#996600",
+                    "description": "The hex value for the background color."
+                },
+                "octo.color.fillColor": {
+                    "type": "string",
+                    "default": "#FFCC00",
+                    "description": "The hex value for the foreground color."
+                },
+                "octo.color.fillColor2": {
+                    "type": "string",
+                    "default": "#FF6600",
+                    "description": "The hex value for the second foreground color. (XO-Chip)"
+                },
+                "octo.color.blendColor": {
+                    "type": "string",
+                    "default": "#662200",
+                    "description": "The hex value for the blended color. (XO-Chip)"
+                },
+                "octo.color.buzzColor": {
+                    "type": "string",
+                    "default": "#FFAA00",
+                    "description": "The hex value for the buzzer color."
+                },
+                "octo.color.quietColor": {
+                    "type": "string",
+                    "default": "#000000",
+                    "description": "The hex value for the silence color."
+                },
+                "octo.tickrate": {
+                    "type": "integer",
+                    "default": 20,
+                    "description": "The number of emulator cycles per rendering frame.",
+                    "enum": [
+                        7,
+                        15,
+                        20,
+                        30,
+                        100,
+                        200,
+                        500,
+                        1000
+                    ]
+                },
+                "octo.screenRotation": {
+                    "type": "integer",
+                    "default": 0,
+                    "description": "The degrees clockwise the screen should be rotated.",
+                    "enum": [
+                        90,
+                        180,
+                        270,
+                        360
+                    ]
+                }
+            }
+        }
     },
     "scripts": {
         "vscode:prepublish": "tsc -p ./",

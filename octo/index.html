@@ -12,7 +12,7 @@
         <select id="framerate" onchange="framerate()">
             <option value="7">7 Cycles/Frame</option>
             <option value="15">15 Cycles/Frame</option>
-            <option value="20" selected="selected">20 Cycles/Frame</option>
+            <option value="20">20 Cycles/Frame</option>
             <option value="30">30 Cycles/Frame</option>
             <option value="100">100 Cycles/Frame</option>
             <option value="200">200 Cycles/Frame</option>
@@ -79,6 +79,7 @@
             </tr>
         </table>
         <textarea id="input" spellcheck="false" style="display:none">{{SOURCE}}</textarea>
+        <!--<script>var defaultOptions = {};</script>-->
         <!--<textarea id="input" spellcheck="false" style="display:none"># Chip8 is a virtual machine designed in 1977 for programming video games.
 # Octo is a high level assembler, disassembler and simulator for Chip8.
 # Click 'Run' and then press ASWD to move the sprite around the screen.
@@ -301,7 +302,7 @@
     <!--<div class="lightbox" style="display:none" id="decompileWork">
         <img src="images/load.gif" class="centericon" />
     </div>-->
-
+    <script type="text/javascript">var defaultOptions = {{OPTIONS}}</script>
     <script src="js/compiler.js"></script>
     <script src="js/decompiler.js"></script>
     <script src="js/emulator.js"></script>

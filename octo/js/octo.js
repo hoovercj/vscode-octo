@@ -64,6 +64,8 @@ var intervalHandle = null;
 var emulator = new Emulator();
 
 function run() {
+    unpackOptions(emulator, defaultOptions || {}); // defaultOptions are injected by my script
+    document.getElementById('framerate').value = emulator.tickrate;
     runRom(compile());
 }
 
@@ -139,52 +141,52 @@ function reset() {
     stopAudio();
 }
 
-function share() {
-    // cribbed from increpare/Puzzlescript/js/toolbar.js
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'https://api.github.com/gists');
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState !== 4) { return; }
-        var result = JSON.parse(xhr.responseText);
-        if (xhr.status === 403) {
-            alert(result.message);
-        }
-        else if (xhr.status !== 200 && xhr.status !== 201) {
-            alert("HTTP Error "+ xhr.status + ' - ' + xhr.statusText);
-        }
-        else {
-            window.location.href = window.location.href.replace(/(index.html|\?gist=.*)*$/, 'index.html?gist=' + result.id);
-        }
-    }
-    var prog = document.getElementById("input").value;
-    var options = JSON.stringify({
-        "tickrate"        : emulator.tickrate,
-        "fillColor"       : emulator.fillColor,
-        "fillColor2"      : emulator.fillColor2,
-        "blendColor"      : emulator.blendColor,
-        "backgroundColor" : emulator.backgroundColor,
-        "buzzColor"       : emulator.buzzColor,
-        "quietColor"      : emulator.quietColor,
-        "shiftQuirks"     : emulator.shiftQuirks,
-        "loadStoreQuirks" : emulator.loadStoreQuirks,
-        "vfOrderQuirks"   : emulator.vfOrderQuirks,
-        "clipQuirks"      : emulator.clipQuirks,
-        "jumpQuirks"      : emulator.jumpQuirks,
-        "enableXO"        : emulator.enableXO,
-        "screenRotation"  : emulator.screenRotation,
-    });
-    xhr.send(JSON.stringify({
-        "description" : "Octo Chip8 Program",
-        "public" : true,
-        "files": {
-            "readme.txt" : {
-                "content": "Play this game by pasting the program into http://johnearnest.github.io/Octo/"
-            },
-            "prog.ch8" : { "content": prog },
-            "options.json": { "content": options }
-        }
-    }));
-}
+// function share() {
+//     // cribbed from increpare/Puzzlescript/js/toolbar.js
+//     var xhr = new XMLHttpRequest();
+//     xhr.open('POST', 'https://api.github.com/gists');
+//     xhr.onreadystatechange = function() {
+//         if (xhr.readyState !== 4) { return; }
+//         var result = JSON.parse(xhr.responseText);
+//         if (xhr.status === 403) {
+//             alert(result.message);
+//         }
+//         else if (xhr.status !== 200 && xhr.status !== 201) {
+//             alert("HTTP Error "+ xhr.status + ' - ' + xhr.statusText);
+//         }
+//         else {
+//             window.location.href = window.location.href.replace(/(index.html|\?gist=.*)*$/, 'index.html?gist=' + result.id);
+//         }
+//     }
+//     var prog = document.getElementById("input").value;
+//     var options = JSON.stringify({
+//         "tickrate"        : emulator.tickrate,
+//         "fillColor"       : emulator.fillColor,
+//         "fillColor2"      : emulator.fillColor2,
+//         "blendColor"      : emulator.blendColor,
+//         "backgroundColor" : emulator.backgroundColor,
+//         "buzzColor"       : emulator.buzzColor,
+//         "quietColor"      : emulator.quietColor,
+//         "shiftQuirks"     : emulator.shiftQuirks,
+//         "loadStoreQuirks" : emulator.loadStoreQuirks,
+//         "vfOrderQuirks"   : emulator.vfOrderQuirks,
+//         "clipQuirks"      : emulator.clipQuirks,
+//         "jumpQuirks"      : emulator.jumpQuirks,
+//         "enableXO"        : emulator.enableXO,
+//         "screenRotation"  : emulator.screenRotation,
+//     });
+//     xhr.send(JSON.stringify({
+//         "description" : "Octo Chip8 Program",
+//         "public" : true,
+//         "files": {
+//             "readme.txt" : {
+//                 "content": "Play this game by pasting the program into http://johnearnest.github.io/Octo/"
+//             },
+//             "prog.ch8" : { "content": prog },
+//             "options.json": { "content": options }
+//         }
+//     }));
+// }
 
 ////////////////////////////////////
 //

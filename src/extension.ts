@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { ExtensionContext, TextDocumentContentProvider, EventEmitter, Event, Uri, ViewColumn } from 'vscode';
 import * as fs from 'fs';
+import * as Octo from './octo';
 
 let extensionContext: ExtensionContext;
 export function activate(context: ExtensionContext) {
@@ -156,6 +157,20 @@ function showQuickPickForDir(dir): Thenable<string> {
     return vscode.window.showQuickPick(files);
 }
 
+function getOctoOptions(): Octo.OctoOptions {
+    var config = vscode.workspace.getConfiguration('octo');
+    var color = config.get('color');
+    var options: Octo.OctoOptions = Octo.GetTheme(<Octo.OctoColor>color);
+    options.clipQuirks = config.get('clipQuirks', false);
+    options.jumpQuirks = config.get('jumpQuirks', false);
+    options.shiftQuirks = config.get('shiftQuirks', false);
+    options.enableXO = config.get('enableX0', false);
+    options.screenRotation = config.get('screenRotation', 0);
+    options.tickrate = config.get('tickrate', 20);
+
+    return options;
+}
+
 interface IRenderer {
     render(text: string) : string;
 }
@@ -176,8 +191,10 @@ class OctoDocumentContentProvider implements TextDocumentContentProvider {
         }).then(source => {
             return vscode.workspace.openTextDocument(getOctoPath('index.html'))
             .then(document => {
+                var options = getOctoOptions();
                 var text = document.getText().replace(/(css\/|images\/|js\/)/g, `${getOctoPath()}/$1`);
                 text = text.replace('{{SOURCE}}', source);
+                text = text.replace('{{OPTIONS}}', JSON.stringify(options));
                 // fs.writeFile(getOctoPath('test_output.html'), text);
                 return text;
             });
