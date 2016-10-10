@@ -1,0 +1,66 @@
+###########################################
+#
+#  Quirks Mode Tests
+#
+#  Examines the behavior of operations
+#  which have multiple interpretations
+#  in the wild and demonstrates the
+#  distinction between Octo's defaults
+#  and quirks modes for each instruction.
+#
+###########################################
+
+: buffer 0 3
+
+: main
+	# Perform a shift where source and dest
+	# differ. The correct behavior will draw a 1
+	# while in-place vx modification will draw 2.
+	v0 := 4
+	v1 := 2
+	v0 >>= v1
+	i  := hex v0
+	va := 5
+	sprite va va 5
+
+	# perform a repeated store and load.
+	# the correct behavior should print 3 due to i autoincrements.
+	# quirks mode will print 4.
+	i := buffer
+	v0 := 4
+	save v0
+	v0 := 9 # just clobber v0 in case
+	load v0
+	i := hex v0
+	vb := 12
+	sprite va vb 5
+
+	# perform an arithmetic operation which stores to vf.
+	# the correct behavior should write the carry flag last, resulting in 0.
+	# quirks mode will print 6.
+	vf := 3
+	vf <<= vf
+	i  := hex vf
+	vb := 19
+	sprite va vb 5
+
+	# try a jump0 instruction.
+	# the correct behavior should respect the value of v0 as an offset, resulting in 7
+	# quirks mode will respect v2 instead (in this case), resulting in 8.
+	v0 := 8
+	v2 := 4
+	jump0 jump-table
+
+: jump-table
+	0x00 0x00 0x00 0x00
+	vf := 8   jump show-jump0-result
+	vf := 7   jump show-jump0-result
+	0x00 0x00 0x00 0x00
+
+: show-jump0-result
+	i  := hex vf
+	va := 10
+	vb := 5
+	sprite va vb 5
+
+	loop again

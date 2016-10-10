@@ -26,6 +26,12 @@
         }, {
             "command": "octo.showSource",
             "title": "Octo: Show source"
+        }, {
+            "command": "octo.openExample",
+            "title": "Octo: Open an example"
+        }, {
+            "command": "octo.openDocs",
+            "title": "Octo: Open docs"
         }],
         "languages": [{
             "id": "octo",

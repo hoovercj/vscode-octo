@@ -5,16 +5,19 @@ import * as path from 'path';
 import { ExtensionContext, TextDocumentContentProvider, EventEmitter, Event, Uri, ViewColumn } from 'vscode';
 import * as fs from 'fs';
 
+let extensionContext: ExtensionContext;
 export function activate(context: ExtensionContext) {
-
-    let provider = new OctoDocumentContentProvider(context);
+    extensionContext = context;
+    let provider = new OctoDocumentContentProvider();
     let registration = vscode.workspace.registerTextDocumentContentProvider('octo', provider);
 
     let d1 = vscode.commands.registerCommand('octo.showPreview', showPreview);
     let d2 = vscode.commands.registerCommand('octo.showPreviewToSide', uri => showPreview(uri, true));
     let d3 = vscode.commands.registerCommand('octo.showSource', showSource);
+    let d4 = vscode.commands.registerCommand('octo.openDocs', openDoc);
+    let d5 = vscode.commands.registerCommand('octo.openExample', openExample);
 
-    context.subscriptions.push(d1, d2, d3, registration);
+    context.subscriptions.push(d1, d2, d3, d4, d5, registration);
 
     vscode.workspace.onDidSaveTextDocument(document => {
         if (isOctoFile(document)) {
@@ -45,34 +48,15 @@ function isOctoFile(document: vscode.TextDocument) {
 }
 
 function getOctoUri(uri: Uri) {
-    return uri.with({ scheme: 'octo', path: uri.path + '.compiled', query: uri.toString() });
+    return uri.with({ scheme: 'octo', path: uri.path + '.compiled', query: uri.path });
 }
 
-function showPreview(uri?: Uri, sideBySide: boolean = false) {
+function getFileUri(path: string) {
+    return new vscode.Uri().with({ scheme: 'file', path: path });
+}
 
-    let resource = uri;
-    if (!(resource instanceof Uri)) {
-        if (vscode.window.activeTextEditor) {
-            // we are relaxed and don't check for octo files
-            resource = vscode.window.activeTextEditor.document.uri;
-        }
-    }
-
-    if (!(resource instanceof Uri)) {
-        if (!vscode.window.activeTextEditor) {
-            // this is most likely toggling the preview
-            return vscode.commands.executeCommand('octo.showSource');
-        }
-        // nothing found that could be shown or toggled
-        return;
-    }
-
-    let thenable = vscode.commands.executeCommand('vscode.previewHtml',
-        getOctoUri(resource),
-        getViewColumn(sideBySide),
-        `Preview '${path.basename(resource.fsPath)}'`);
-
-    return thenable;
+function getOctoPath(file?: string) {
+    return extensionContext.asAbsolutePath(path.join('octo', file || ''));
 }
 
 function getViewColumn(sideBySide): ViewColumn {
@@ -95,22 +79,81 @@ function getViewColumn(sideBySide): ViewColumn {
     return active.viewColumn;
 }
 
+function showPreview(uri?: Uri, sideBySide: boolean = false) {
+
+    let resource = uri;
+    if (!(resource instanceof Uri)) {
+        if (vscode.window.activeTextEditor) {
+            // we are relaxed and don't check for octo files
+            resource = vscode.window.activeTextEditor.document.uri;
+        }
+    }
+
+    if (!(resource instanceof Uri)) {
+        if (!vscode.window.activeTextEditor) {
+            // this is most likely toggling the preview
+            return vscode.commands.executeCommand('octo.showSource');
+        }
+        // nothing found that could be shown or toggled
+        return;
+    }
+    let thenable = vscode.commands.executeCommand('vscode.previewHtml',
+        getOctoUri(resource),
+        getViewColumn(sideBySide),
+        `Preview '${path.basename(resource.fsPath)}'`);
+
+    return thenable;
+}
+
 function showSource(mdUri: Uri) {
     if (!mdUri) {
         return vscode.commands.executeCommand('workbench.action.navigateBack');
     }
 
     const docUri = Uri.parse(mdUri.query);
-
     for (let editor of vscode.window.visibleTextEditors) {
         if (editor.document.uri.toString() === docUri.toString()) {
             return vscode.window.showTextDocument(editor.document, editor.viewColumn);
         }
     }
 
-    return vscode.workspace.openTextDocument(docUri).then(doc => {
-        return vscode.window.showTextDocument(doc);
-    });
+    return vscode.workspace.openTextDocument(docUri).then(doc => vscode.window.showTextDocument(doc));
+}
+
+function openDoc(): void {
+    var dir = path.join('docs', '_site');
+    var doc = showQuickPickForDir(dir);
+    var selectedFilename;
+    if (doc) {
+        doc.then(filename => {
+            selectedFilename = filename.split('.')[0];
+            return vscode.workspace.openTextDocument(getFileUri(getOctoPath(path.join(dir, filename))))
+        }).then(document => vscode.commands.executeCommand('vscode.previewHtml',
+            document.uri,
+            getViewColumn(true),
+            `Octo Docs: ${selectedFilename}`));
+    }
+}
+
+function openExample(): void {
+    var dir = 'examples';
+    var promise = showQuickPickForDir(dir);
+    var selectedFilename;
+
+    if (!promise) return;
+
+    promise.then(filename => {
+        if (!filename) return;
+        selectedFilename = filename.split('.')[0];
+        return vscode.workspace.openTextDocument(getFileUri(getOctoPath(path.join(dir, filename))))
+    }).then(document => vscode.window.showTextDocument(document));
+}
+
+function showQuickPickForDir(dir): Thenable<string> {
+    var files = fs.readdirSync(getOctoPath(dir));
+    if (!files) return;
+
+    return vscode.window.showQuickPick(files);
 }
 
 interface IRenderer {
@@ -123,25 +166,19 @@ class OctoDocumentContentProvider implements TextDocumentContentProvider {
     private _waiting : boolean;
     private _renderer : IRenderer;
 
-    constructor(context: ExtensionContext) {
-        this._context = context;
+    constructor() {
         this._waiting = false;
     }
 
-    private getOctoPath(file?: string) {
-        return this._context.asAbsolutePath(path.join('octo', file || ''));
-    }
-
     public provideTextDocumentContent(uri: Uri): Thenable<string> {
-
-        return vscode.workspace.openTextDocument(Uri.parse(uri.query)).then(sourceDocument => {
+        return vscode.workspace.openTextDocument(Uri.parse(uri.query).with({scheme: 'file'})).then(sourceDocument => {
             return sourceDocument.getText();
         }).then(source => {
-            return vscode.workspace.openTextDocument(this.getOctoPath('index.html'))
+            return vscode.workspace.openTextDocument(getOctoPath('index.html'))
             .then(document => {
-                var text = document.getText().replace(/(css\/|images\/|js\/)/g, `${this.getOctoPath()}/$1`);
+                var text = document.getText().replace(/(css\/|images\/|js\/)/g, `${getOctoPath()}/$1`);
                 text = text.replace('{{SOURCE}}', source);
-                fs.writeFile(this.getOctoPath('test_output.html'), text);
+                // fs.writeFile(getOctoPath('test_output.html'), text);
                 return text;
             });
         });

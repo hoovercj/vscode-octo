@@ -1,0 +1,34 @@
+###########################################
+#
+#  Next Test
+#
+#  Demonstrates the use of the :next
+#  operative to refer to the second byte
+#  of an instruction. Mainly used for
+#  writing self-modifying code.
+#
+###########################################
+
+: lt  v0 := -1 i := vx save v0 ;
+: rt  v0 :=  1 i := vx save v0 ;
+
+: up  v0 := -1 i := vy save v0 ;
+: dn  v0 :=  1 i := vy save v0 ;
+
+: main
+	va := 2
+	vb := 8
+
+	loop
+		clear
+		i := hex vc
+		sprite va vb 5
+
+		:next vx va += 1
+		:next vy vb += 1
+
+		if va ==  0 then rt
+		if va == 59 then lt
+		if vb ==  0 then dn
+		if vb == 26 then up
+	again

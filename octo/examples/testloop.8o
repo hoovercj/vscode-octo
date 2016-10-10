@@ -1,0 +1,66 @@
+###########################################
+#
+#  Loop Construct Tests
+#
+#  Tests boundary conditions using `if`
+#  and `while` with simple and synthetic
+#  comparison operators.
+#  Should draw 5 vertical strips of 6 boxes.
+#
+###########################################
+
+: main
+	# while with pseudo-op
+	v0 := 0
+	v1 := 0
+	loop
+		while v1 < 30
+		sprite v0 v1 5
+		v1 += 5
+	again
+
+	# while with simple comparison
+	v0 := 5
+	v1 := 0
+	loop
+		while v1 != 30
+		sprite v0 v1 5
+		v1 += 5
+	again
+
+	# if with pseudo-op
+	v0 := 10
+	v1 := 0
+	loop
+		if v1 >= 30 then jump done1
+		sprite v0 v1 5
+		v1 += 5
+	again
+	: done1
+
+	# if with simple comparison
+	v0 := 15
+	v1 := 0
+	loop
+		if v1 == 30 then jump done2
+		sprite v0 v1 5
+		v1 += 5
+	again
+	: done2
+
+	# nested loops with while
+	v0 := 20
+	v1 := 0
+	loop
+		while v1 != 25
+		sprite v0 v1 5
+		v1 += 5
+		v2 := 5
+		loop
+			v2 += -1
+			if v2 != 0 then
+		again
+	again
+	sprite v0 v1 5
+
+	loop again
