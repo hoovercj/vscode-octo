@@ -121,7 +121,7 @@ function runRom(rom) {
     emulator.exportFlags = function(flags) { localStorage.setItem("octoFlagRegisters", JSON.stringify(flags)); }
     emulator.buzzTrigger = function(ticks, remainingTicks) { playPattern(ticks, emulator.pattern, remainingTicks); }
     emulator.init(rom);
-    setRenderTarget(5, "target");
+    setRenderTarget("target");
     audioSetup();
     // document.getElementById("emulator").style.display = "inline";
     // document.getElementById("emulator").style.backgroundColor = emulator.quietColor;
