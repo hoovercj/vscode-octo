@@ -1,0 +1,202 @@
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+<h2 id="octo-assembly-language">Octo Assembly Language</h2>
+
+<p>Octo programs are a series of <em>tokens</em> separated by whitespace. Some tokens represent Chip8 instructions and some tokens are <em>directives</em> which instruct Octo to do some special action as the program is compiled. The <code class="highlighter-rouge">:</code> directive, followed by a name (which cannot contain spaces) defines a <em>label</em>. A label represents a memory address- a location in your program. You must define at least one label called <code class="highlighter-rouge">main</code> which serves as the entrypoint to your program.</p>
+
+<p>Using a label by itself will perform a subroutine call to the address the label represents. A semicolon (<code class="highlighter-rouge">;</code>) is another way to write <code class="highlighter-rouge">return</code>, which returns from a subroutine. The <code class="highlighter-rouge">#</code> directive is a single-line comment; it ignores the rest of the current line. Numbers can be written using <code class="highlighter-rouge">0x</code> or <code class="highlighter-rouge">0b</code> prefixes to indicate hexadecimal or binary encodings, respectively.</p>
+
+<p>Numeric constants can be defined with the <code class="highlighter-rouge">:const</code> directive followed by a name and then a value, which may be a number, another constant or a (non forward-declared) label. Registers may be given named aliases with <code class="highlighter-rouge">:alias</code> followed by a name and then a register. The <code class="highlighter-rouge">i</code> register may not be given an alias, but v registers can be given as many aliases as desired. Here are some examples of constants and aliases:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>:alias x v0
+:alias CARRY_FLAG vF
+:const iterations 16
+:const sprite-height 9
+</code></pre>
+</div>
+
+<p>Chip8 has 16 general-purpose 8-bit registers named <code class="highlighter-rouge">v0</code> to <code class="highlighter-rouge">vF</code>. <code class="highlighter-rouge">vF</code> is the “flag” register”, and some operations will modify it as a side effect. <code class="highlighter-rouge">i</code> is the memory index register and is used when reading and writing memory via <code class="highlighter-rouge">load</code>, <code class="highlighter-rouge">save</code> and <code class="highlighter-rouge">bcd</code>, and also provides the address of the graphics data drawn by <code class="highlighter-rouge">sprite</code>. Sprites are drawn by XORing their pixels with the contents of the screen. The screen is 64 pixels wide and 32 pixels tall, and sprites drawn off the edge of the display will wrap around. Drawing a sprite sets <code class="highlighter-rouge">vF</code> to 0, or to 1 if drawing the sprite toggles any pixels which were previously on. For a more detailed description of the behavior of Chip8 instructions consult <a href="http://mattmik.com/chip8.html" target="_blank">Mastering Chip8</a>.</p>
+
+<p>In the following descriptions, <code class="highlighter-rouge">vx</code> and <code class="highlighter-rouge">vy</code> refer to some register name (v0-vF) and <code class="highlighter-rouge">n</code> refers to some number. The Chip8 keypad is represented on your keyboard as follows:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>Chip8 Key   Keyboard
+---------   ---------
+ 1 2 3 C     1 2 3 4
+ 4 5 6 D     q w e r
+ 7 8 9 E     a s d f
+ A 0 B F     z x c v
+</code></pre>
+</div>
+
+<h2 id="statements">Statements</h2>
+
+<ul>
+  <li><code class="highlighter-rouge">return</code>          return from the current subroutine. (alias for ;)</li>
+  <li><code class="highlighter-rouge">clear</code>           clear the screen.</li>
+  <li><code class="highlighter-rouge">bcd vx</code>          decode vx into BCD at i, i+1, i+2.</li>
+  <li><code class="highlighter-rouge">save vx</code>         save registers v0-vx to i.</li>
+  <li><code class="highlighter-rouge">load vx</code>         load registers v0-vx from i.</li>
+  <li><code class="highlighter-rouge">sprite vx vy n</code>  draw a sprite at x/y position, n rows tall.</li>
+  <li><code class="highlighter-rouge">jump n</code>          jump to address.</li>
+  <li><code class="highlighter-rouge">jump0 n</code>         jump to address n + v0.</li>
+</ul>
+
+<p>The <code class="highlighter-rouge">load</code> and <code class="highlighter-rouge">save</code> instructions postincrement <code class="highlighter-rouge">i</code> by <code class="highlighter-rouge">x</code>+1. For example, <code class="highlighter-rouge">load v3</code> will add 4 to <code class="highlighter-rouge">i</code> after loading 4 bytes of memory into the first 4 <code class="highlighter-rouge">v</code> registers.</p>
+
+<h2 id="assignments">Assignments</h2>
+
+<p>The various chip8 copy/fetch/arithmetic opcodes have been abstracted to mostly fit into a consistent <code class="highlighter-rouge">&lt;dest-reg&gt; &lt;operator&gt; &lt;source&gt;</code> format. For some instructions, <code class="highlighter-rouge">&lt;source&gt;</code> can have several forms.</p>
+
+<ul>
+  <li><code class="highlighter-rouge">delay := vx</code>    set delay timer to register value.</li>
+  <li><code class="highlighter-rouge">buzzer := vx</code>   set sound timer to register value.</li>
+  <li><code class="highlighter-rouge">i  := n</code>        set I to constant.</li>
+  <li><code class="highlighter-rouge">i  := hex vx</code>   set I to hex char corresponding to register value.</li>
+  <li><code class="highlighter-rouge">i  += vx</code>       increment I by a register value.</li>
+  <li><code class="highlighter-rouge">vx := vy</code>       copy register to register.</li>
+  <li><code class="highlighter-rouge">vx := n</code>        set register to constant.</li>
+  <li><code class="highlighter-rouge">vx := random n</code> set register to random number AND n.</li>
+  <li><code class="highlighter-rouge">vx := delay</code>    set register to delay timer.</li>
+  <li><code class="highlighter-rouge">vx := key</code>      block for a keypress and then store code in register.</li>
+  <li><code class="highlighter-rouge">vx += n</code>        add constant to register.</li>
+  <li><code class="highlighter-rouge">vx += vy</code>       add register to register. (set vF to 1 if result overflows, else 0)</li>
+  <li><code class="highlighter-rouge">vx -= vy</code>       subtract y from x, store in x (set vF to 0 if result underflows, else 1)</li>
+  <li><code class="highlighter-rouge">vx =- vy</code>       subtract x from y, store in x (set vF to 0 if result underflows, else 1)</li>
+  <li><code class="highlighter-rouge">vx |= vy</code>       bitwise OR register with register.</li>
+  <li><code class="highlighter-rouge">vx &amp;= vy</code>       bitwise AND register with register.</li>
+  <li><code class="highlighter-rouge">vx ^= vy</code>       bitwise XOR register with register.</li>
+  <li><code class="highlighter-rouge">vx &gt;&gt;= vy</code>      shift vy right by 1 and store result in vx. (set vF to LSB of vy)</li>
+  <li><code class="highlighter-rouge">vx &lt;&lt;= vy</code>      shift vy left by 1 and store result in vx. (set vF to MSB of vy)</li>
+</ul>
+
+<h2 id="control-flow">Control Flow</h2>
+<p>The Chip8 conditional opcodes are all conditional skips, so Octo control structures have been designed to map cleanly to this approach. The following conditional expressions can be used with <code class="highlighter-rouge">if</code> or <code class="highlighter-rouge">while</code>:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">vx == n</code></li>
+  <li><code class="highlighter-rouge">vx != n</code></li>
+  <li><code class="highlighter-rouge">vx == vy</code></li>
+  <li><code class="highlighter-rouge">vx != vy</code></li>
+  <li><code class="highlighter-rouge">vx key</code> (true if the key indicated by vx is pressed)</li>
+  <li><code class="highlighter-rouge">vx -key</code> (true if the key indicated by vx is not pressed)</li>
+</ul>
+
+<p><code class="highlighter-rouge">if...then</code> conditionally executes a single statement. For example,</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>if v0 != 5 then v1 += 2
+</code></pre>
+</div>
+
+<p>Octo also provides pseudo-ops for using <code class="highlighter-rouge">&lt;</code>, <code class="highlighter-rouge">&gt;</code>, <code class="highlighter-rouge">&lt;=</code> and <code class="highlighter-rouge">&gt;=</code> to compare two registers or a register with a constant:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>if v1 &gt;  v2  then v3 := 5
+if v1 &lt;= 0xA then v3 := 7
+</code></pre>
+</div>
+
+<p>These are implemented by using the subtraction instructions <code class="highlighter-rouge">-=</code> and <code class="highlighter-rouge">=-</code> and querying <code class="highlighter-rouge">vf</code>, and will destroy the contents of a temporary register as well as <code class="highlighter-rouge">vf</code>. By default this temporary register will be <code class="highlighter-rouge">ve</code>, but defining an <code class="highlighter-rouge">:alias</code> named <code class="highlighter-rouge">compare-temp</code> can reassign it to any register but <code class="highlighter-rouge">vf</code>. Note that these pseudo-ops produce 3 chip8 instructions each and should be avoided when the simpler direct comparisons are suitable.</p>
+
+<p>If you wish to conditionally execute a group of statements, you can use <code class="highlighter-rouge">if...begin...end</code> instead of <code class="highlighter-rouge">if...then</code>. Optionally you may include an <code class="highlighter-rouge">else</code> clause.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>if v0 &gt; 5 begin
+	v1 := random 0xFF
+	if v1 == 5 begin
+		v2 := v1
+		v3 := v1
+	else
+		delay := v1
+	end
+end
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">if...begin...else...end</code> will not always be the fastest or most compact way to express your desired conditions. Consider rearranging your logic, using jump tables with <code class="highlighter-rouge">jump0</code> or factoring the bodies of conditional clauses into subroutines if they are reused elsewhere. <code class="highlighter-rouge">if...begin...end</code> requires more instructions than a plain <code class="highlighter-rouge">if...then</code>, so prefer the latter when practical.</p>
+
+<p><code class="highlighter-rouge">loop...again</code> is an unconditional infinite loop. <code class="highlighter-rouge">loop</code> marks the address of the start of the loop and produces no code, while <code class="highlighter-rouge">again</code> compiles a jump instruction based on the address provided by <code class="highlighter-rouge">loop</code>. Since <code class="highlighter-rouge">again</code> is itself a statement, we can use an <code class="highlighter-rouge">if...then</code> at the end of a loop to skip over the backwards jump and efficiently break out of the loop. The following loop will execute 5 times:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>v0 := 0
+loop
+	# do something...
+	v0 += 1
+	if v0 != 5 then
+again
+</code></pre>
+</div>
+
+<p>The other way to break out of a loop is <code class="highlighter-rouge">while</code>. <code class="highlighter-rouge">while</code> creates a conditional skip around a forward jump. These forward jumps are resolved by <code class="highlighter-rouge">again</code> to point to the address immediately outside their loop. <code class="highlighter-rouge">while</code> will thus exit the current loop if its condition is not true. You can have as many <code class="highlighter-rouge">while</code> statements in a loop as you want. Here is an example of <code class="highlighter-rouge">while</code> which is similar to the previous except for when the condition is checked.</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>v0 := 0
+loop
+	v0 += 1
+	while v0 != 5
+	# do something...
+again
+</code></pre>
+</div>
+
+<p><code class="highlighter-rouge">loop...again</code> constructs may be nested as desired and will behave as expected, but note that simply chaining together <code class="highlighter-rouge">if...then</code> statements (as in <code class="highlighter-rouge">if v0 == 0 then if v1 == 1 then v2 := 4</code>) does not elicit useful behavior.</p>
+
+<h2 id="self-modifying-code">Self Modifying Code</h2>
+<p>Sometimes you may wish to have the 12-bit address represented by a label available in <code class="highlighter-rouge">v</code> registers. Octo provides a command called <code class="highlighter-rouge">:unpack</code> for this purpose which expands into a pair of register assignment opcodes. It takes a nybble (0-15 numeric literal or constant) followed by a label as arguments. The lower 8 bits of the address will be stored in <code class="highlighter-rouge">v1</code> and the upper 4 bits of the address will be bitwise ORed with the specified nybble shifted left 4 bits and stored in <code class="highlighter-rouge">v0</code>. If the label <code class="highlighter-rouge">cucumber</code> represented the address <code class="highlighter-rouge">0x582</code>, the following sets of statements would be identical in meaning:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>v0 := 0xA5
+v1 := 0x82
+
+:unpack 0xA cucumber
+</code></pre>
+</div>
+
+<p>This operation makes it possible to write self-modifying code without hardcoding addresses as numeric literals. If you wish to unpack addresses into registers other than <code class="highlighter-rouge">v0</code> and <code class="highlighter-rouge">v1</code> you can define aliases called <code class="highlighter-rouge">unpack-hi</code> or <code class="highlighter-rouge">unpack-lo</code>, respectively.</p>
+
+<p>Another type of self-modifying code that comes up frequently is overwriting the second half of an instruction, particularly instructions like <code class="highlighter-rouge">vX := NN</code> whose second byte is an immediate operand. This requires a label at the second byte of an instruction, which can be achieved with <code class="highlighter-rouge">:next</code>:</p>
+
+<div class="highlighter-rouge"><pre class="highlight"><code>: init  :next target va := 2 ;
+
+...
+
+i := target
+v0 := 5
+save v0
+init # va will be set to 5 instead of 2.
+</code></pre>
+</div>
+
+<p>You can also specify an address at which subsequent instructions should be compiled by using <code class="highlighter-rouge">:org</code> followed by an address. The use of this operative is very brittle, so it should be avoided unless absolutely necessary.</p>
+
+<h2 id="superchip">SuperChip</h2>
+<p>SuperChip or SCHIP is a set of extended Chip8 instructions. Octo can emulate these instructions and will indicate if any such instructions are used in an assembled program. The SuperChip instructions are as follows:</p>
+
+<ul>
+  <li><code class="highlighter-rouge">hires</code> Switch to a 128x64 pixel high resolution display mode.</li>
+  <li><code class="highlighter-rouge">lores</code> Switch to the normal 64x32 pixel low resolution display mode.</li>
+  <li><code class="highlighter-rouge">scroll-down n</code> Scroll the contents of the display down by 0-15 pixels.</li>
+  <li><code class="highlighter-rouge">scroll-left</code> Scroll the contents of the display left by 4 pixels.</li>
+  <li><code class="highlighter-rouge">scroll-right</code> Scroll the contents of the display right by 4 pixels.</li>
+  <li><code class="highlighter-rouge">i := bighex vx</code> Set I to a large 8x10 hex char corresponding to register value.</li>
+  <li><code class="highlighter-rouge">exit</code> Halt the program and quit the emulator.</li>
+  <li><code class="highlighter-rouge">saveflags vx</code> Save v0-vn (n &lt; 8) to flag registers. (Originally, HP-48 flag registers.)</li>
+  <li><code class="highlighter-rouge">loadflags vx</code> Restore v0-vn (n &lt; 8) from flag registers.</li>
+</ul>
+
+<p>Flag registers are persisted using browser local storage, so provided no applications blow them away intentionally they can be used to store information between play sessions such as high score information or progress.</p>
+
+<p>Finally, drawing a sprite with height 0 (which would otherwise do nothing) is used by the SuperChip to draw a large 16x16 sprite. The sprite data itself is stored as 16 pairs of bytes representing each row.</p>
+
+<h2 id="xo-chip">XO-Chip</h2>
+<p>Beyond SuperChip, Octo provides a set of unique extended instructions called XO-Chip. These instructions provide a 4-color display, improved scrolling functionality, a flexible audio generator, expanded ram and instructions which make memory manipulation more convenient. Since XO-Chip introduces a few minor changes to the behavior of Octo, these features must be explicitly enabled in the Options panel.</p>
+
+<ul>
+  <li><code class="highlighter-rouge">save vx - vy</code> save an inclusive range of registers to memory starting at <code class="highlighter-rouge">i</code>.</li>
+  <li><code class="highlighter-rouge">load vx - vy</code> load an inclusive range of registers from memory starting at <code class="highlighter-rouge">i</code>.</li>
+  <li><code class="highlighter-rouge">i := long NNNN</code> load <code class="highlighter-rouge">i</code> with a 16-bit address. (this instruction is 4 bytes long.)</li>
+  <li><code class="highlighter-rouge">plane n</code> select zero or more drawing planes by bitmask (0 &lt;= n &lt;= 3).</li>
+  <li><code class="highlighter-rouge">audio</code> store 16 bytes starting at <code class="highlighter-rouge">i</code> in the audio pattern buffer.</li>
+  <li><code class="highlighter-rouge">scroll-up n</code> scroll the contents of the display up by 0-15 pixels.</li>
+</ul>
+
+<p>For more details, consult the XO-Chip specification in Octo’s documentation directory. At time of writing Octo is the only Chip8 interpreter which supports these instructions, but authors are encouraged to provide them in their own interpreters.</p>
+
+<h2 id="debugging">Debugging</h2>
+<p>Octo provides basic debugging facilities for Chip8 programs. While a program is running, pressing the “i” key will interrupt execution and display the contents of the <code class="highlighter-rouge">v</code> registers, <code class="highlighter-rouge">i</code> and the program counter. Any register aliases and (guessed) labels will be indicated next to the raw register contents. When interrupted, pressing “i” again or clicking the “continue” icon will resume execution, while pressing “o” will single-step through the program. Note that while single-stepping the Chip8 timers will not count down.</p>
+
+<p>Breakpoints can also be placed in source code by using the command <code class="highlighter-rouge">:breakpoint</code> followed by a name- the name will be shown when the breakpoint is encountered so that multiple breakpoints can be readily distinguished. <code class="highlighter-rouge">:breakpoint</code> is an out-of-band debugging facility and inserting a breakpoint into your program will not add any code or modify any Chip8 registers.</p>
