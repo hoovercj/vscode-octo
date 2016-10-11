@@ -121,61 +121,6 @@
                 <td class="key" id="0xF">F</td>
             </tr>
         </table>
-        <!--<textarea id="input" spellcheck="false" style="display:none">{{SOURCE}}</textarea>-->
-        <script>var defaultOptions = {};</script>
-        <textarea id="input" spellcheck="false" style="display:none"># Chip8 is a virtual machine designed in 1977 for programming video games.
-# Octo is a high level assembler, disassembler and simulator for Chip8.
-# Click 'Run' and then press ASWD to move the sprite around the screen.
-# Click the Octo logo for source, documentation and examples.
-
-:alias px v3
-:alias py v4
-
-: main
-    px := random 0b0011111
-    py := random 0b0001111
-    i  := person
-    sprite px py 8
-
-    loop
-        # erase the player, update its position and then redraw:
-        sprite px py 8
-        v0 := 5   if v0 key then py += -1 # keyboard W
-        v0 := 8   if v0 key then py +=  1 # keyboard S
-        v0 := 7   if v0 key then px += -1 # keyboard A
-        v0 := 9   if v0 key then px +=  1 # keyboard D
-        sprite px py 8
-
-        # lock the framerate of this program via the delay timer:
-        loop
-            vf := delay
-            if vf != 0 then
-        again
-        vf := 3
-        delay := vf
-    again
-
-    loop
-        # erase the player, update its position and then redraw:
-        sprite px py 8
-        v0 := 5   if v0 key then py += -1 # keyboard W
-        v0 := 8   if v0 key then py +=  1 # keyboard S
-        v0 := 7   if v0 key then px += -1 # keyboard A
-        v0 := 9   if v0 key then px +=  1 # keyboard D
-        sprite px py 8
-
-        # lock the framerate of this program via the delay timer:
-        loop
-            vf := delay
-            if vf != 0 then
-        again
-        vf := 3
-        delay := vf
-    again
-
-: person
-    0x70 0x70 0x20 0x70 0xA8 0x20 0x50 0x50
-        </textarea>
     </div>
     <div id="debugger-row" class="flex-container row">
         <div class="debugger" id="registerView" style="display:none">
@@ -292,14 +237,70 @@
         <h3>File Output</h3>
         <button type="button" onclick="saveBinaryFile()">Save .ch8 File</button>
     </div>-->
-    <div>
-        <textarea id="output" style="display:none;" rows="6" cols="80"></textarea>
-    </div>
-    <div class="statusbar"><p id="status"></p></div>
 
     <!--<div class="lightbox" style="display:none" id="decompileWork">
         <img src="images/load.gif" class="centericon" />
     </div>-->
+    <div>
+        <textarea id="output" style="display:none;" rows="6" cols="80"></textarea>
+    </div>
+    <div class="statusbar"><p id="status"></p></div>
+    <script>var defaultOptions = {};</script>
+    <!--<textarea id="input" spellcheck="false" style="display:none">{{SOURCE}}</textarea>-->
+    <textarea id="input" spellcheck="false" style="display:none"># Chip8 is a virtual machine designed in 1977 for programming video games.
+# Octo is a high level assembler, disassembler and simulator for Chip8.
+# Click 'Run' and then press ASWD to move the sprite around the screen.
+# Click the Octo logo for source, documentation and examples.
+
+:alias px v3
+:alias py v4
+
+: main
+    px := random 0b0011111
+    py := random 0b0001111
+    i  := person
+    sprite px py 8
+
+    loop
+        # erase the player, update its position and then redraw:
+        sprite px py 8
+        v0 := 5   if v0 key then py += -1 # keyboard W
+        v0 := 8   if v0 key then py +=  1 # keyboard S
+        v0 := 7   if v0 key then px += -1 # keyboard A
+        v0 := 9   if v0 key then px +=  1 # keyboard D
+        sprite px py 8
+
+        # lock the framerate of this program via the delay timer:
+        loop
+            vf := delay
+            if vf != 0 then
+        again
+        vf := 3
+        delay := vf
+    again
+
+    loop
+        # erase the player, update its position and then redraw:
+        sprite px py 8
+        v0 := 5   if v0 key then py += -1 # keyboard W
+        v0 := 8   if v0 key then py +=  1 # keyboard S
+        v0 := 7   if v0 key then px += -1 # keyboard A
+        v0 := 9   if v0 key then px +=  1 # keyboard D
+        sprite px py 8
+
+        # lock the framerate of this program via the delay timer:
+        loop
+            vf := delay
+            if vf != 0 then
+        again
+        vf := 3
+        delay := vf
+    again
+
+: person
+    0x70 0x70 0x20 0x70 0xA8 0x20 0x50 0x50
+    </textarea>
+
     <script type="text/javascript">var defaultOptions = {{OPTIONS}}</script>
     <script src="js/compiler.js"></script>
     <script src="js/decompiler.js"></script>
