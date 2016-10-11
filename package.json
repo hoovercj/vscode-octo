@@ -18,11 +18,11 @@
     "main": "./out/src/extension",
     "contributes": {
         "commands": [{
-            "command": "octo.showPreview",
-            "title": "Octo: Show preview"
+            "command": "octo.showTools",
+            "title": "Octo: Show tools"
         }, {
-            "command": "octo.showPreviewToSide",
-            "title": "Octo: Show preview to the side"
+            "command": "octo.showToolsToSide",
+            "title": "Octo: Show tools to the side"
         }, {
             "command": "octo.showSource",
             "title": "Octo: Show source"
