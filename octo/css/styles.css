@@ -127,11 +127,22 @@ h3 {
     display: inline-block;
     position: relative;
 }
-.wrapper:after {
+.wrapper:after:not(.vertical) {
     padding-top: 50%;
     display: block;
     content: '';
 }
+
+.vertical.wrapper {
+    width: 20%;
+}
+
+.vertical.wrapper:after {
+    padding-top: 200%;
+    display: block;
+    content: '';
+}
+
 .wrapped {
     position: absolute;
     top: 0;
@@ -139,6 +150,10 @@ h3 {
     right: 0;
     left: 0;
     width: 100%;
+}
+
+.vertical.wrapper .wrapped {
+    height: 100%;
 }
 
 /* Media queries to switch rows to columns in small viewports */

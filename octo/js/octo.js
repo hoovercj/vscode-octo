@@ -66,6 +66,9 @@ var emulator = new Emulator();
 function run() {
     unpackOptions(emulator, defaultOptions || {}); // defaultOptions are injected by my script
     document.getElementById('framerate').value = emulator.tickrate;
+    if (emulator.screenRotation % 180 !== 0) {
+        document.getElementById('emulator').classList.add('vertical');
+    }
     runRom(compile());
 }
 

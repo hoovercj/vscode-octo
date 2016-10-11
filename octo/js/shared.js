@@ -58,26 +58,62 @@ function setRenderTarget(canvasId) {
     // }
 }
 
-function getTransform(emulator, canvasContext) {
+// function getTransform(emulator, canvas) {
+//     var canvasContext = canvas.getContext("2d");
+//     var stride = emulator.hires ? 128 : 64;
+//     var scaleFactor = Math.max(canvas.width, canvas.height) / stride;
+//     canvasContext.setTransform(1, 0, 0, 1, 0, 0);
+//     var x = scaleFactor * 128;
+//     var y = scaleFactor *  64;
+//     emulator.screenRotation = 90;
+//     switch(emulator.screenRotation) {
+//         case 90:
+//             canvasContext.rotate(0.5 * Math.PI);
+//             canvasContext.translate(0, -y);
+//             break;
+//         case 180:
+//             canvasContext.rotate(1.0 * Math.PI);
+//             canvasContext.translate(-x, -y);
+//             break;
+//         case 270:
+//             canvasContext.rotate(1.5 * Math.PI);
+//             canvasContext.translate(-x, 0);
+//             break;
+//         default:
+//             /* nothing to do */
+//     }
+// }
+
+function getTransform(emulator, canvas) {
+    if (emulator.screenRotation === 0) {
+        return;
+    }
+
+    var canvasContext = canvas.getContext("2d");
     canvasContext.setTransform(1, 0, 0, 1, 0, 0);
-    var x = scaleFactor * 128;
-    var y = scaleFactor *  64;
+    var width = canvas.width;
+    var height = canvas.height;
+    // translate to center-canvas 
+    // the origin [0,0] is now center-canvas
+    canvasContext.translate(width/2,height/2);
     switch(emulator.screenRotation) {
         case 90:
-            canvasContext.rotate(0.5 * Math.PI);
-            canvasContext.translate(0, -y);
+            canvasContext.rotate(Math.PI/2);
+            canvasContext.transform(.5, 0, 0, 2, 0, 0);
             break;
         case 180:
             canvasContext.rotate(1.0 * Math.PI);
-            canvasContext.translate(-x, -y);
+            canvasContext.transform(1,0,0,1,0,0);
             break;
         case 270:
             canvasContext.rotate(1.5 * Math.PI);
-            canvasContext.translate(-x, 0);
+            canvasContext.transform(.5, 0, 0, 2, 0, 0);
             break;
         default:
             /* nothing to do */
+            break;
     }
+    canvasContext.translate(-width / 2, -height / 2);
 }
 
 function arrayEqual(a, b) {
@@ -114,13 +150,13 @@ function renderDisplay(emulator) {
         colors: colors,
         p: [emulator.p[0].slice(), emulator.p[1].slice()]
     };
+    getTransform(emulator, canvas);
     var canvasContext = canvas.getContext("2d");
-    // getTransform(emulator, canvasContext);
     canvasContext.fillStyle = emulator.backgroundColor;
     canvasContext.fillRect(0, 0, canvas.width, canvas.height);
     var max    = emulator.hires ? 128*64      : 64*32;
     var stride = emulator.hires ? 128         : 64;
-    var scaleFactor = canvas.width / stride;
+    var scaleFactor = Math.max(canvas.width, canvas.height) / stride;
 
     for(var z = 0; z < max; z++) {
         var color = getColor(emulator.p[0][z] + (emulator.p[1][z] * 2));
