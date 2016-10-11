@@ -5,6 +5,7 @@ import * as path from 'path';
 import { ExtensionContext, TextDocumentContentProvider, EventEmitter, Event, Uri, ViewColumn } from 'vscode';
 import * as fs from 'fs';
 import * as Octo from './octo';
+import * as cp from 'child_process';
 
 let extensionContext: ExtensionContext;
 export function activate(context: ExtensionContext) {
@@ -12,13 +13,14 @@ export function activate(context: ExtensionContext) {
     let provider = new OctoDocumentContentProvider();
     let registration = vscode.workspace.registerTextDocumentContentProvider('octo', provider);
 
-    let d1 = vscode.commands.registerCommand('octo.showPreview', showPreview);
-    let d2 = vscode.commands.registerCommand('octo.showPreviewToSide', uri => showPreview(uri, true));
+    let d1 = vscode.commands.registerCommand('octo.showTools', showPreview);
+    let d2 = vscode.commands.registerCommand('octo.showToolsToSide', uri => showPreview(uri, true));
     let d3 = vscode.commands.registerCommand('octo.showSource', showSource);
     let d4 = vscode.commands.registerCommand('octo.openDocs', openDoc);
     let d5 = vscode.commands.registerCommand('octo.openExample', openExample);
+    let d6 = vscode.commands.registerCommand('octo.decompile', decompile);
 
-    context.subscriptions.push(d1, d2, d3, d4, d5, registration);
+    context.subscriptions.push(d1, d2, d3, d4, d5, d6, registration);
 
     vscode.workspace.onDidSaveTextDocument(document => {
         if (isOctoFile(document)) {
@@ -167,8 +169,63 @@ function getOctoOptions(): Octo.OctoOptions {
     options.enableXO = config.get('enableX0', false);
     options.screenRotation = config.get('screenRotation', 0);
     options.tickrate = config.get('tickrate', 20);
+    options.numericFormat = config.get('numericFormat', 'hex');
 
     return options;
+}
+
+function decompile(): void {
+    switch (vscode.window.activeTextEditor.document.languageId) {
+        case "octo":
+            decompileSelection();
+            break;
+        default:
+            break;
+    }
+}
+
+function decompileSelection(): void {
+    decompileFile(vscode.window.activeTextEditor.document.uri.fsPath, replaceSelection);
+}
+
+function decompileFile(path: string, callback): void {
+    let options = getOctoOptions();
+    let flags = "";
+    flags += `--${options.numericFormat}`;
+    flags += options.shiftQuirks ? ' --qshift' : '';
+    flags += options.loadStoreQuirks ? ' --qloadstore' : '';
+    flags += options.vfOrderQuirks ? ' --qvforder' : '';
+    flags += options.numericMask ? ' --numMask' : '';
+
+    let octoPath = getOctoPath('octo');
+    let command = `node ${octoPath} --decompile ${flags} ${path}`;
+    cp.exec(command, (error, stdout, stderr) => {
+        if (error) {
+            console.error(error);
+        }
+
+        if (stderr) {
+            console.error(stderr.toString());
+        }
+
+        if (stdout) {
+            callback(stdout.toString());
+        }
+    });
+}
+
+function replaceSelection(newText: string): void {
+    let activeEditor = vscode.window.activeTextEditor;
+    let selection: vscode.Selection | vscode.Range = activeEditor.selection;
+    if (selection.isEmpty) {
+        let lineCount = activeEditor.document.lineCount;
+        let startPosition = new vscode.Position(0, 0);
+        let endPosition = new vscode.Position(lineCount,0);
+        selection = new vscode.Range(startPosition, endPosition);
+    }
+    activeEditor.edit(editBuilder => {
+        editBuilder.replace(selection, newText);
+    });
 }
 
 interface IRenderer {

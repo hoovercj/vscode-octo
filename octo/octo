@@ -1,0 +1,148 @@
+#!/usr/bin/env node
+// simple piped commandline octo compiler
+
+var compiler   = require('./js/compiler');
+var decompiler = require('./js/decompiler');
+var fs         = require('fs');
+
+
+var zeroes = "00000000";
+
+global.maskFormat = function (mask) {
+	if (!options['numericMask']) { return binaryFormat(mask);  }
+	else                         { return numericFormat(mask); }
+}
+
+global.numericFormat = function (num) {
+	if (options['numericFormat'] == "dec")      { return decimalFormat(num); } 
+	else if (options['numericFormat'] == "bin") { return binaryFormat(num);  }
+	else if (options['numericFormat'] == "hex") { return hexFormat(num);     }
+
+	return hexFormat(num);
+}
+
+global.decimalFormat = function (num) {
+	var dec = num.toString(10);
+	return dec;
+}
+
+global.hexFormat = function (num) {
+	var hex  = num.toString(16).toUpperCase();
+	var pad0 = zeroPad(hex.length, 2);
+	return "0x" + pad0 + hex;
+}
+
+global.binaryFormat = function (num) {
+	var bin  = num.toString(2);
+	var pad0 = zeroPad(bin.length, 8);
+	return "0b" + pad0 + bin;
+}
+
+function zeroPad(strLen, byteLength) {
+	var dif = strLen % byteLength;
+	if (dif == 0) { return ""; }
+
+	var len  = byteLength - dif;
+	var pad0 = zeroes.substr(0, len);
+	return pad0;
+}
+
+
+
+function extractFlag(name) {
+	var index = process.argv.indexOf(name);
+	if (index == -1) { return false; }
+	process.argv.splice(index, 1);
+	return true;
+}
+
+function compile(sourceCode) {
+	var comp = new compiler.Compiler(sourceCode);
+	try {
+		var comp = new compiler.Compiler(sourceCode);
+		comp.go();
+		return comp.rom;
+	}
+	catch(err) {
+		var line = 1;
+		for(var x = 0; x < comp.pos[1]-1; x++) {
+			if (sourceCode.charAt(x) == '\n') { line++; }
+		}
+		console.error("line %d: %s", line, err);
+		process.exit(1);
+	}
+}
+
+function compileFile(src, dst) {
+	var programText = fs.readFileSync(src, { encoding:'utf8' });
+	var programBinary = new Buffer(compile(programText));
+	if (typeof dst == "undefined") { process.stdout.write(programBinary); }
+	else { fs.writeFileSync(dst, programBinary, { encoding:'binary' }); }
+	return programBinary;
+}
+
+function decompileFile(src, dst) {
+	var buff = fs.readFileSync(src);
+	decompiler.analyze(buff, options);
+	var programText = decompiler.formatProgram(buff.length);
+	if (typeof dst == "undefined") { console.log(programText); }
+	else { fs.writeFileSync(dst, programText); }
+	return programText;
+}
+
+function printUsage() {
+	console.log("usage: octo [--decompile | --roundtrip] [--hex | --dec | --bin] [--numMask] [--qshift] [--qloadstore] [--qvforder] <source> [<destination>]");
+	process.exit(1);
+}
+
+var options = {};
+options['shiftQuirks'    ] = extractFlag("--qshift");
+options['loadStoreQuirks'] = extractFlag("--qloadstore");
+options['vfOrderQuirks'  ] = extractFlag("--qvforder");
+options['numericMask'    ] = extractFlag("--numMask") 
+var decompileFlag = extractFlag("--decompile");
+var roundTripFlag = extractFlag("--roundtrip");
+
+if(extractFlag("--hex"))      { options['numericFormat'] = 'hex'; }
+else if(extractFlag("--dec")) { options['numericFormat'] = 'dec'; } 
+else if (extractFlag("--bin")) { options['numericFormat'] = 'bin'; }
+
+if (process.argv.length != 3 && process.argv.length != 4 && process.argv.length != 5 && process.argv.length != 6 ) { printUsage(); }
+var sourceFile = process.argv[2];
+var destFile   = process.argv[3];
+
+var decompiledText = "";
+
+if (decompileFlag) {
+	decompiledText = decompileFile(sourceFile, destFile);
+}
+else if (!roundTripFlag) {
+	compileFile(sourceFile, destFile);
+}
+
+if (roundTripFlag) {
+	var startBinary = fs.readFileSync(sourceFile);
+	if (decompiledText == "") {
+		decompiler.analyze(startBinary, options);
+		decompiledText = decompiler.formatProgram(startBinary.length);
+	}
+	var endBinary = compile(decompiledText);
+	
+	var mismatch = false;
+	for(var x = 0; x < Math.max(startBinary.length, endBinary.length); x++) {
+		var mishere = (startBinary[x] != endBinary[x]);
+		if (!mishere) { continue; }
+		if (!mismatch) { console.error("round trip mismatch!"); }
+		mismatch |= mishere;
+		console.error("%s: original: %s output: %s",
+			hexFormat(x + 0x200),
+			hexFormat(startBinary[x]),
+			hexFormat(endBinary[x])
+		);
+	}
+	if (startBinary.length != endBinary.length) {
+		console.error("binary sizes do not match!");
+		mismatch = true;
+	}
+	if (mismatch) { process.exit(1); }
+}

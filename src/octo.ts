@@ -13,6 +13,8 @@ export interface OctoOptions {
     jumpQuirks: boolean;
     enableXO: boolean;
     screenRotation: number;
+    numericMask: boolean;
+    numericFormat: string;
 }
 
 export interface OctoColor {

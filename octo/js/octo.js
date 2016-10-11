@@ -419,7 +419,7 @@ function toggleSpriteEditor() {
     if (editor.style.display == "none") {
         editor.style.display = "inline";
         // document.getElementById("options").style.display = "none";
-        // document.getElementById("bintools").style.display = "none";
+        document.getElementById("bintools").style.display = "none";
         document.getElementById("audiotools").style.display = "none";
         document.getElementById("keypad").style.display = "none";
         showPixels();
@@ -657,7 +657,7 @@ function toggleKeypad() {
     if (keypad.style.display == "none") {
         keypad.style.display = "block";
         // document.getElementById("options").style.display = "none";
-        // document.getElementById("bintools").style.display = "none";
+        document.getElementById("bintools").style.display = "none";
         document.getElementById("spriteEditor").style.display = "none";
         document.getElementById("audiotools").style.display = "none";
     }
@@ -830,6 +830,7 @@ function toggleBinaryTools() {
         // document.getElementById("options").style.display = "none";
         document.getElementById("spriteEditor").style.display = "none";
         document.getElementById("audiotools").style.display = "none";
+        document.getElementById("keypad").style.display = "none";
     }
     else {
         tools.style.display = "none";
@@ -861,53 +862,53 @@ function decompileRequestLoad() {
     reader.readAsArrayBuffer(file);
 }
 
-function getDecompileData() {
-    var inData = document.getElementById("decompileInput").value;
-    inData = inData.replace("[", "");
-    inData = inData.replace("]", "");
-    inData = inData.split(",");
-    var buffer = [];
-    for(var z = 0; z < inData.length; z++) {
-        buffer[z] = parse(inData[z].trim());
-    }
-    return buffer;
-}
+// function getDecompileData() {
+//     var inData = document.getElementById("decompileInput").value;
+//     inData = inData.replace("[", "");
+//     inData = inData.replace("]", "");
+//     inData = inData.split(",");
+//     var buffer = [];
+//     for(var z = 0; z < inData.length; z++) {
+//         buffer[z] = parse(inData[z].trim());
+//     }
+//     return buffer;
+// }
 
-function decompileRun() {
-    var buffer = getDecompileData();
-    runRom({ rom:buffer, breakpoints:{}, aliases:{}, labels:{} });
-}
+// function decompileRun() {
+//     var buffer = getDecompileData();
+//     runRom({ rom:buffer, breakpoints:{}, aliases:{}, labels:{} });
+// }
 
-var decompileProgramLength = 0;
+// var decompileProgramLength = 0;
 
-function decompileStart() {
-    document.getElementById("decompileWork").style.display = "inline";
-    var buffer = getDecompileData();
-    var quirks = {};
-    quirks['shiftQuirks'    ] = emulator.shiftQuirks;
-    quirks['loadStoreQuirks'] = emulator.loadStoreQuirks;
-    quirks['vfOrderQuirks'  ] = emulator.vfOrderQuirks;
-    quirks['jumpQuirks'     ] = emulator.jumpQuirks;
-    analyzeInit(buffer, quirks);
-    decompileProgramLength = buffer.length;
-    window.setTimeout(decompileProcess, 0);
-}
+// function decompileStart() {
+//     document.getElementById("decompileWork").style.display = "inline";
+//     var buffer = getDecompileData();
+//     var quirks = {};
+//     quirks['shiftQuirks'    ] = emulator.shiftQuirks;
+//     quirks['loadStoreQuirks'] = emulator.loadStoreQuirks;
+//     quirks['vfOrderQuirks'  ] = emulator.vfOrderQuirks;
+//     quirks['jumpQuirks'     ] = emulator.jumpQuirks;
+//     analyzeInit(buffer, quirks);
+//     decompileProgramLength = buffer.length;
+//     window.setTimeout(decompileProcess, 0);
+// }
 
-function decompileProcess() {
-    var finished = false;
-    for(var z = 0; z < 100; z++) {
-        finished |= analyzeWork();
-        if (finished) { break; }
-    }
-    if (finished) {
-        analyzeFinish();
-        document.getElementById("input").value = "# decompiled program:\n" + formatProgram(decompileProgramLength);
-        document.getElementById("decompileWork").style.display = "none";
-    }
-    else {
-        window.setTimeout(decompileProcess, 0);
-    }
-}
+// function decompileProcess() {
+//     var finished = false;
+//     for(var z = 0; z < 100; z++) {
+//         finished |= analyzeWork();
+//         if (finished) { break; }
+//     }
+//     if (finished) {
+//         analyzeFinish();
+//         document.getElementById("input").value = "# decompiled program:\n" + formatProgram(decompileProgramLength);
+//         document.getElementById("decompileWork").style.display = "none";
+//     }
+//     else {
+//         window.setTimeout(decompileProcess, 0);
+//     }
+// }
 
 ////////////////////////////////////
 //
@@ -921,7 +922,7 @@ function toggleAudioEditor() {
 		// document.getElementById("options").style.display      = "none";
         document.getElementById("keypad").style.display = "none";
 		document.getElementById("spriteEditor").style.display = "none";
-		// document.getElementById("bintools").style.display     = "none";
+		document.getElementById("bintools").style.display     = "none";
 		audio.style.display = "inline";
 		drawAudio();
 	}

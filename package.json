@@ -32,12 +32,19 @@
         }, {
             "command": "octo.openDocs",
             "title": "Octo: Open docs"
+        }, {
+            "command": "octo.decompile",
+            "title": "Octo: Decompile"
         }],
         "languages": [{
             "id": "octo",
             "aliases": ["Octo", "octo"],
             "extensions": [".8o"],
             "configuration": "./language-configuration.json"
+        },{
+            "id": "chip8",
+            "aliases": ["Chip8", "chip8"],
+            "extensions": [".ch8"]
         }],
         "grammars": [{
             "language": "octo",
@@ -147,6 +154,21 @@
                         270,
                         360
                     ]
+                },
+                "octo.numericFormat": {
+                    "type": "string",
+                    "default": "hex",
+                    "description": "The numeric format to use when decompiling.",
+                    "enum": [
+                        "hex",
+                        "dec",
+                        "bin"
+                    ]
+                },
+                "octo.numericMask": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "format the numeric operand of Random n as binary."
                 }
             }
         }
