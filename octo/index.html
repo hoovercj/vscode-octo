@@ -19,21 +19,21 @@
             <option value="500">500 Cycles/Frame</option>
             <option value="1000">1000 Cycles/Frame</option>
         </select>
-        <button title="toggle keypad" src="images/keypad.png" onclick="toggleKeypad()" style="padding-left: 10px;">Toggle keypad</button>
         <button title="save a screenshot" src="images/screenshot.png" onclick="saveScreenshot()" style="padding-left: 10px;">Save screenshot</button>
         <button id="continueButton" title="continue" src="images/continue.png" onclick="clearBreakpoint()" style="display: none;padding-left: 10px;">Continue</button>
         <!--<button type="button" onClick="toggleOptions();">Options</button>-->
         <!--<button type="button" onClick="toggleManual();">Manual</button>-->
         <!--<button type="button" onClick="compile()">Compile</button>-->
         <!--<button type="button" onClick="share()">Share</button>-->
+        <button title="toggle keypad" src="images/keypad.png" onclick="toggleKeypad()" style="padding-left: 10px;">Toggle keypad</button>
         <button type="button" onClick="toggleSpriteEditor();">Sprite Editor</button>
         <button type="button" onClick="toggleAudioEditor();" class="xofeature" style="display:inline" style="display:none">Audio Editor</button>
         <!--<button type="button" onClick="toggleBinaryTools();">Binary Tools</button>-->
     </div>
 
     <div class="flex-container row">
-        <div id="emulator" class="canv">
-            <canvas id="target"></canvas>
+        <div id="emulator" class="wrapper canv">
+            <canvas id="target"class="wrapped"></canvas>
         </div>
         <div id="spriteEditor" class="rightpanel" style="display:none">
             <h3>Sprite Editor</h3>
@@ -121,9 +121,9 @@
                 <td class="key" id="0xF">F</td>
             </tr>
         </table>
-        <textarea id="input" spellcheck="false" style="display:none">{{SOURCE}}</textarea>
-        <!--<script>var defaultOptions = {};</script>-->
-        <!--<textarea id="input" spellcheck="false" style="display:none"># Chip8 is a virtual machine designed in 1977 for programming video games.
+        <!--<textarea id="input" spellcheck="false" style="display:none">{{SOURCE}}</textarea>-->
+        <script>var defaultOptions = {};</script>
+        <textarea id="input" spellcheck="false" style="display:none"># Chip8 is a virtual machine designed in 1977 for programming video games.
 # Octo is a high level assembler, disassembler and simulator for Chip8.
 # Click 'Run' and then press ASWD to move the sprite around the screen.
 # Click the Octo logo for source, documentation and examples.
@@ -175,7 +175,7 @@
 
 : person
     0x70 0x70 0x20 0x70 0xA8 0x20 0x50 0x50
-        </textarea>-->
+        </textarea>
     </div>
     <div id="debugger-row" class="flex-container row">
         <div class="debugger" id="registerView" style="display:none">
