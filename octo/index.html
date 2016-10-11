@@ -27,8 +27,8 @@
         <!--<button type="button" onClick="compile()">Compile</button>-->
         <!--<button type="button" onClick="share()">Share</button>-->
         <button type="button" onClick="toggleSpriteEditor();">Sprite Editor</button>
-        <!--<button type="button" onClick="toggleAudioEditor();" class="xofeature" style="display:none" class="xofeature" style="display:none">Audio Editor</button>
-        <button type="button" onClick="toggleBinaryTools();">Binary Tools</button>-->
+        <button type="button" onClick="toggleAudioEditor();" class="xofeature" style="display:inline" style="display:none">Audio Editor</button>
+        <!--<button type="button" onClick="toggleBinaryTools();">Binary Tools</button>-->
     </div>
 
     <div class="flex-container row">
@@ -42,7 +42,7 @@
                 <input type="checkbox" id="spriteEditorSize" onchange="setSpriteEditorSize();">
                 <label for="spriteEditorSize">16x16 mode</label>
                 <br/>
-                <div class="xofeature" style="display:none">
+                <div class="xofeature" style="display:inline">
                     <input type="checkbox" id="spriteEditorColor" onchange="setSpriteEditorColor();">
                     <label for="spriteEditorColor">Color mode</label>
                 </div>
@@ -51,6 +51,49 @@
                 <canvas id="draw" width="200" height="375" style="border:1px solid;"></canvas><br/>
                 <textarea id="spriteData" rows="10" cols="25" onchange="editHex();" onkeyup="editHex();"></textarea>
             </div>
+        </div>
+        <div id="audiotools" class="rightpanel" style="display:none">
+            <h3>Audio Editor</h3>
+            Enter a pattern of 16 bytes:<br>
+            <canvas id="drawAudio" width="256" height="32"></canvas>
+            </br>
+            <textarea id="audioPattern" rows="4" cols="40" spellcheck="false" onchange="editAudioHex('audioPattern');" onkeyup="editAudioHex('audioPattern');"></textarea><br>
+            <select id="audioPreset" onchange="presetAudio();">
+                        <option value="">Choose a preset...</option>
+                        <option value="0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00">1/2 Duty Square Wave</option>
+                        <option value="0xFF 0xFF 0xFF 0xFF 0x00 0x00 0x00 0x00 0xFF 0xFF 0xFF 0xFF 0x00 0x00 0x00 0x00">1/4 Duty Square Wave</option>
+                        <option value="0xFF 0xFF 0x00 0x00 0xFF 0xFF 0x00 0x00 0xFF 0xFF 0x00 0x00 0xFF 0xFF 0x00 0x00">1/8 Duty Square Wave</option>
+                        <option value="0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00">1/16 Duty Square Wave</option>
+                        <option value="0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0">1/32 Duty Square Wave</option>
+                        <option value="0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC">1/64 Duty Square Wave</option>
+                        <option value="0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA">1/128 Duty Square Wave</option>
+                        <option value="0x10 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x10 0x00 0x00 0x00 0x00 0x00 0x00 0x00">High Grind</option>
+                        <option value="0xAA 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0xAA 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Medium Grind</option>
+                        <option value="0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Low Grind</option>
+                        <option value="0xF0 0xF0 0xF0 0xF0 0xcc 0xcc 0xcc 0xcc 0xF0 0xF0 0xF0 0xF0 0xcc 0xcc 0xcc 0xcc">Doorbell</option>
+                        <option value="0x55 0xAA 0x55 0xAA 0x55 0xAA 0x55 0xAA 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Gurgle</option>
+                        <option value="0x02 0xCD 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Click</option>
+                        <option value="0xFF 0x80 0x3F 0xE0 0x0F 0xF8 0x03 0xFF 0x00 0x7F 0xC0 0x8E 0x38 0xE3 0x8E 0x38">A5</option>
+                    </select>
+            <button onclick="randomAudio();">Random</button>
+            <button onclick="shiftAudio(1);">&lt;</button>
+            <button onclick="shiftAudio(-1);">&gt;</button>
+            <br> Duration (1/60ths of a second): <input id="time" type="text" size="4" value="30">
+            <button onclick="playAudio();">Play</button>
+            <div id="audioerror" style="color: red;"></div>
+            <h3>Waveform Blending</h3>
+            Combine this waveform with the one above.<br>
+            <textarea id="blendPattern" rows="4" cols="40" spellcheck="false" onchange="editAudioHex('blendPattern');" onkeyup="editAudioHex('blendPattern');"></textarea><br>
+            <button type="button" onclick="blendWaveform('xor');">XOR</button>
+            <button type="button" onclick="blendWaveform('and');">AND</button>
+            <button type="button" onclick="blendWaveform('or');">OR</button>
+            <button type="button" onclick="blendWaveform('not');">NOT (this pattern)</button>
+            <button type="button" onclick="swapWaveforms('blendPattern', 'audioPattern');">Swap</button>
+            <h3>Tone Generator</h3>
+            <canvas id="waveform" width="256" height="64"></canvas><br> Freq. (Hz): <input id="frequency" type="text" size="4" value="440" onchange="generateWaveform();" onkeyup="generateWaveform();">        Cutoff: <input id="cutoff" type="text" size="4" value="128" onchange="generateWaveform();" onkeyup="generateWaveform();">
+            <button type="button" onclick="swapWaveforms('generatedPattern', 'audioPattern');">Swap</button>
+            <br><textarea id="generatedPattern" rows="4" cols="40" spellcheck="false" onchange="editAudioHex('generatedPattern');"
+                onkeyup="editAudioHex('generatedPattern');"></textarea>
         </div>
         <table border="0" id="keypad" style="display: none;">
             <tr>
@@ -249,51 +292,6 @@
         <h3>File Output</h3>
         <button type="button" onclick="saveBinaryFile()">Save .ch8 File</button>
     </div>-->
-
-    <!--<div id="audiotools" class="rightpanel" style="display:none">
-        <h3>Audio Editor</h3>
-        Enter a pattern of 16 bytes:<br>
-        <canvas id="drawAudio" width="256" height="32"></canvas>
-        </br>
-        <textarea id="audioPattern" rows="4" cols="40" spellcheck="false" onchange="editAudioHex('audioPattern');" onkeyup="editAudioHex('audioPattern');"></textarea><br>
-        <select id="audioPreset" onchange="presetAudio();">
-                    <option value="">Choose a preset...</option>
-                    <option value="0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00">1/2 Duty Square Wave</option>
-                    <option value="0xFF 0xFF 0xFF 0xFF 0x00 0x00 0x00 0x00 0xFF 0xFF 0xFF 0xFF 0x00 0x00 0x00 0x00">1/4 Duty Square Wave</option>
-                    <option value="0xFF 0xFF 0x00 0x00 0xFF 0xFF 0x00 0x00 0xFF 0xFF 0x00 0x00 0xFF 0xFF 0x00 0x00">1/8 Duty Square Wave</option>
-                    <option value="0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00">1/16 Duty Square Wave</option>
-                    <option value="0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0">1/32 Duty Square Wave</option>
-                    <option value="0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC">1/64 Duty Square Wave</option>
-                    <option value="0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA">1/128 Duty Square Wave</option>
-                    <option value="0x10 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x10 0x00 0x00 0x00 0x00 0x00 0x00 0x00">High Grind</option>
-                    <option value="0xAA 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0xAA 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Medium Grind</option>
-                    <option value="0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Low Grind</option>
-                    <option value="0xF0 0xF0 0xF0 0xF0 0xcc 0xcc 0xcc 0xcc 0xF0 0xF0 0xF0 0xF0 0xcc 0xcc 0xcc 0xcc">Doorbell</option>
-                    <option value="0x55 0xAA 0x55 0xAA 0x55 0xAA 0x55 0xAA 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Gurgle</option>
-                    <option value="0x02 0xCD 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Click</option>
-                    <option value="0xFF 0x80 0x3F 0xE0 0x0F 0xF8 0x03 0xFF 0x00 0x7F 0xC0 0x8E 0x38 0xE3 0x8E 0x38">A5</option>
-                </select>
-        <button onclick="randomAudio();">Random</button>
-        <button onclick="shiftAudio(1);">&lt;</button>
-        <button onclick="shiftAudio(-1);">&gt;</button>
-        <br> Duration (1/60ths of a second): <input id="time" type="text" size="4" value="30">
-        <button onclick="playAudio();">Play</button>
-        <div id="audioerror" style="color: red;"></div>
-        <h3>Waveform Blending</h3>
-        Combine this waveform with the one above.<br>
-        <textarea id="blendPattern" rows="4" cols="40" spellcheck="false" onchange="editAudioHex('blendPattern');" onkeyup="editAudioHex('blendPattern');"></textarea><br>
-        <button type="button" onclick="blendWaveform('xor');">XOR</button>
-        <button type="button" onclick="blendWaveform('and');">AND</button>
-        <button type="button" onclick="blendWaveform('or');">OR</button>
-        <button type="button" onclick="blendWaveform('not');">NOT (this pattern)</button>
-        <button type="button" onclick="swapWaveforms('blendPattern', 'audioPattern');">Swap</button>
-        <h3>Tone Generator</h3>
-        <canvas id="waveform" width="256" height="64"></canvas><br> Freq. (Hz): <input id="frequency" type="text" size="4" value="440" onchange="generateWaveform();" onkeyup="generateWaveform();">        Cutoff: <input id="cutoff" type="text" size="4" value="128" onchange="generateWaveform();" onkeyup="generateWaveform();">
-        <button type="button" onclick="swapWaveforms('generatedPattern', 'audioPattern');">Swap</button>
-        <br><textarea id="generatedPattern" rows="4" cols="40" spellcheck="false" onchange="editAudioHex('generatedPattern');"
-            onkeyup="editAudioHex('generatedPattern');"></textarea>
-    </div>-->
-
     <div>
         <textarea id="output" style="display:none;" rows="6" cols="80"></textarea>
     </div>

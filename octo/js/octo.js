@@ -365,43 +365,43 @@ function setQuirks(flag) {
     emulator[flag] = document.getElementById(flag).checked;
 }
 
-function setEnableXO() {
-    var check = document.getElementById("enableXO");
-    emulator.enableXO = check.checked;
-    if (check.checked) {
-        var features = document.getElementsByClassName("xofeature");
-        for(var z = 0; z < features.length; z++) {
-            var feature = features[z];
-            feature.style.display = (feature.tagName == "TR") ? "table-row" : "inline";
-        }
-    }
-}
+// function setEnableXO() {
+//     var check = document.getElementById("enableXO");
+//     emulator.enableXO = check.checked;
+//     if (check.checked) {
+//         var features = document.getElementsByClassName("xofeature");
+//         for(var z = 0; z < features.length; z++) {
+//             var feature = features[z];
+//             feature.style.display = (feature.tagName == "TR") ? "table-row" : "inline";
+//         }
+//     }
+// }
 
-function toggleOptions() {
-    var options = document.getElementById("options");
-    if (options.style.display == "none") {
-        options.style.display = "inline";
-        document.getElementById("spriteEditor").style.display = "none";
-        document.getElementById("bintools").style.display = "none";
-        document.getElementById("audiotools").style.display = "none";
-        document.getElementById("foreEdit1"      ).value   = emulator.fillColor;  editFore1();
-        document.getElementById("foreEdit2"      ).value   = emulator.fillColor2; editFore2();
-        document.getElementById("blendEdit"      ).value   = emulator.blendColor; editBlend();
-        document.getElementById("backEdit"       ).value   = emulator.backgroundColor; editBack();
-        document.getElementById("buzzEdit"       ).value   = emulator.buzzColor;  editBuzz();
-        document.getElementById("silentEdit"     ).value   = emulator.quietColor; editSilent();
-        document.getElementById("shiftQuirks"    ).checked = emulator.shiftQuirks;
-        document.getElementById("loadStoreQuirks").checked = emulator.loadStoreQuirks;
-        document.getElementById("vfOrderQuirks"  ).checked = emulator.vfOrderQuirks;
-        document.getElementById("clipQuirks"     ).checked = emulator.clipQuirks;
-        document.getElementById("jumpQuirks"     ).checked = emulator.jumpQuirks;
-        document.getElementById("enableXO"       ).checked = emulator.enableXO;
-        document.getElementById("screenRotation" ).value   = emulator.screenRotation;
-    }
-    else {
-        options.style.display = "none";
-    }
-}
+// function toggleOptions() {
+//     var options = document.getElementById("options");
+//     if (options.style.display == "none") {
+//         options.style.display = "inline";
+//         document.getElementById("spriteEditor").style.display = "none";
+//         document.getElementById("bintools").style.display = "none";
+//         document.getElementById("audiotools").style.display = "none";
+//         document.getElementById("foreEdit1"      ).value   = emulator.fillColor;  editFore1();
+//         document.getElementById("foreEdit2"      ).value   = emulator.fillColor2; editFore2();
+//         document.getElementById("blendEdit"      ).value   = emulator.blendColor; editBlend();
+//         document.getElementById("backEdit"       ).value   = emulator.backgroundColor; editBack();
+//         document.getElementById("buzzEdit"       ).value   = emulator.buzzColor;  editBuzz();
+//         document.getElementById("silentEdit"     ).value   = emulator.quietColor; editSilent();
+//         document.getElementById("shiftQuirks"    ).checked = emulator.shiftQuirks;
+//         document.getElementById("loadStoreQuirks").checked = emulator.loadStoreQuirks;
+//         document.getElementById("vfOrderQuirks"  ).checked = emulator.vfOrderQuirks;
+//         document.getElementById("clipQuirks"     ).checked = emulator.clipQuirks;
+//         document.getElementById("jumpQuirks"     ).checked = emulator.jumpQuirks;
+//         document.getElementById("enableXO"       ).checked = emulator.enableXO;
+//         document.getElementById("screenRotation" ).value   = emulator.screenRotation;
+//     }
+//     else {
+//         options.style.display = "none";
+//     }
+// }
 
 ////////////////////////////////////
 //
@@ -415,7 +415,8 @@ function toggleSpriteEditor() {
         editor.style.display = "inline";
         // document.getElementById("options").style.display = "none";
         // document.getElementById("bintools").style.display = "none";
-        // document.getElementById("audiotools").style.display = "none";
+        document.getElementById("audiotools").style.display = "none";
+        document.getElementById("keypad").style.display = "none";
         showPixels();
     }
     else {
@@ -650,6 +651,10 @@ function toggleKeypad() {
     var keypad = document.getElementById("keypad");
     if (keypad.style.display == "none") {
         keypad.style.display = "block";
+        // document.getElementById("options").style.display = "none";
+        // document.getElementById("bintools").style.display = "none";
+        document.getElementById("spriteEditor").style.display = "none";
+        document.getElementById("audiotools").style.display = "none";
     }
     else {
         keypad.style.display = "none";
@@ -817,7 +822,7 @@ function toggleBinaryTools() {
     document.getElementById("numericFormat").value = emulator.numericFormatStr;
     if (tools.style.display == "none") {
         tools.style.display = "inline";
-        document.getElementById("options").style.display = "none";
+        // document.getElementById("options").style.display = "none";
         document.getElementById("spriteEditor").style.display = "none";
         document.getElementById("audiotools").style.display = "none";
     }
@@ -905,261 +910,262 @@ function decompileProcess() {
 //
 ////////////////////////////////////
 
-// function toggleAudioEditor() {
-// 	var audio = document.getElementById("audiotools");
-// 	if (audio.style.display == "none") {
-// 		document.getElementById("options").style.display      = "none";
-// 		document.getElementById("spriteEditor").style.display = "none";
-// 		document.getElementById("bintools").style.display     = "none";
-// 		audio.style.display = "inline";
-// 		drawAudio();
-// 	}
-// 	else {
-// 		audio.style.display = "none";
-// 	}
-// }
+function toggleAudioEditor() {
+	var audio = document.getElementById("audiotools");
+	if (audio.style.display == "none") {
+		// document.getElementById("options").style.display      = "none";
+        document.getElementById("keypad").style.display = "none";
+		document.getElementById("spriteEditor").style.display = "none";
+		// document.getElementById("bintools").style.display     = "none";
+		audio.style.display = "inline";
+		drawAudio();
+	}
+	else {
+		audio.style.display = "none";
+	}
+}
 
-// function presetAudio() {
-// 	document.getElementById("audioPattern").value = document.getElementById("audioPreset").value;
-// 	audioPattern = parseAudio("audioPattern");
-// 	drawAudio();
-// }
+function presetAudio() {
+	document.getElementById("audioPattern").value = document.getElementById("audioPreset").value;
+	audioPattern = parseAudio("audioPattern");
+	drawAudio();
+}
 
-// function randomAudio() {
-// 	var ret = [];
-// 	for(var z = 0; z < 16; z++) {
-// 		ret[z] = Math.floor(Math.random() * 255);
-// 	}
-// 	audioPattern = ret;
-// 	document.getElementById("audioPattern").value = getAudioHex(audioPattern);
-// 	drawAudio();
-// }
+function randomAudio() {
+	var ret = [];
+	for(var z = 0; z < 16; z++) {
+		ret[z] = Math.floor(Math.random() * 255);
+	}
+	audioPattern = ret;
+	document.getElementById("audioPattern").value = getAudioHex(audioPattern);
+	drawAudio();
+}
 
-// function swapWaveforms(x, y) {
-// 	var a = document.getElementById(x).value;
-// 	var b = document.getElementById(y).value;
-// 	document.getElementById(x).value = b;
-// 	document.getElementById(y).value = a;
-// 	parseWaveforms();
-// 	drawAudio();
-// }
+function swapWaveforms(x, y) {
+	var a = document.getElementById(x).value;
+	var b = document.getElementById(y).value;
+	document.getElementById(x).value = b;
+	document.getElementById(y).value = a;
+	parseWaveforms();
+	drawAudio();
+}
 
-// function shiftAudio(delta) {
-// 	var result = [];
-// 	for(var z = 0; z < 16; z++) {
-// 		var b = 0;
-// 		for(var index = 0; index < 8; index++) {
-// 			var sourceIndex = (index + delta + (z * 8)) & 127;
-// 			var sourceByte  = Math.floor(sourceIndex / 8);
-// 			var sourceBit   = 7 - Math.floor(sourceIndex % 8);
-// 			b = (b <<= 1) | ((audioPattern[sourceByte] >> sourceBit) & 1);
-// 		}
-// 		result[z] = b;
-// 	}
-// 	audioPattern = result;
-// 	document.getElementById("audioPattern").value = getAudioHex(audioPattern);
-// 	drawAudio();
-// }
+function shiftAudio(delta) {
+	var result = [];
+	for(var z = 0; z < 16; z++) {
+		var b = 0;
+		for(var index = 0; index < 8; index++) {
+			var sourceIndex = (index + delta + (z * 8)) & 127;
+			var sourceByte  = Math.floor(sourceIndex / 8);
+			var sourceBit   = 7 - Math.floor(sourceIndex % 8);
+			b = (b <<= 1) | ((audioPattern[sourceByte] >> sourceBit) & 1);
+		}
+		result[z] = b;
+	}
+	audioPattern = result;
+	document.getElementById("audioPattern").value = getAudioHex(audioPattern);
+	drawAudio();
+}
 
-// function blendWaveform(func) {
-// 	function blend(target, dyad) {
-// 		var data = "";
-// 		for(var z = 0; z < audioPattern.length; z++) {
-// 			data += hexFormat(dyad(audioPattern[z], blendPattern[z]) & 0xFF) + " ";
-// 		}
-// 		document.getElementById(target).value = data;
-// 	}
+function blendWaveform(func) {
+	function blend(target, dyad) {
+		var data = "";
+		for(var z = 0; z < audioPattern.length; z++) {
+			data += hexFormat(dyad(audioPattern[z], blendPattern[z]) & 0xFF) + " ";
+		}
+		document.getElementById(target).value = data;
+	}
 
-// 	if (func == 'xor') {
-// 		blend("audioPattern", function(a, b) { return a ^ b; });
-// 	}
-// 	if (func == 'and') {
-// 		blend("audioPattern", function(a, b) { return a & b; });
-// 	}
-// 	if (func == 'or') {
-// 		blend("audioPattern", function(a, b) { return a | b; });
-// 	}
-// 	if (func == 'not') {
-// 		blend("blendPattern", function(a, b) { return (~b); });
-// 	}
-// 	parseWaveforms();
-// 	drawAudio();
-// }
+	if (func == 'xor') {
+		blend("audioPattern", function(a, b) { return a ^ b; });
+	}
+	if (func == 'and') {
+		blend("audioPattern", function(a, b) { return a & b; });
+	}
+	if (func == 'or') {
+		blend("audioPattern", function(a, b) { return a | b; });
+	}
+	if (func == 'not') {
+		blend("blendPattern", function(a, b) { return (~b); });
+	}
+	parseWaveforms();
+	drawAudio();
+}
 
-// function generateWaveform() {
-// 	var canvas = document.getElementById("waveform");
-// 	var h = canvas.height;
-// 	var w = canvas.width;
-// 	var g = canvas.getContext("2d");
-// 	g.fillStyle = emulator.backgroundColor;
-// 	g.fillRect(0, 0, canvas.width, canvas.height);
+function generateWaveform() {
+	var canvas = document.getElementById("waveform");
+	var h = canvas.height;
+	var w = canvas.width;
+	var g = canvas.getContext("2d");
+	g.fillStyle = emulator.backgroundColor;
+	g.fillRect(0, 0, canvas.width, canvas.height);
 
-// 	// Samples are played at 4000 samples/second.
-// 	// 128 samples is (1 seconds / 4000 * 128) = .032 seconds.
-// 	// This also means that a full 128 bit pattern is ~ 2/60ths of a second.
-// 	// A sine wave at N hz would be given by sin(t * N * 2Pi).
+	// Samples are played at 4000 samples/second.
+	// 128 samples is (1 seconds / 4000 * 128) = .032 seconds.
+	// This also means that a full 128 bit pattern is ~ 2/60ths of a second.
+	// A sine wave at N hz would be given by sin(t * N * 2Pi).
 
-// 	var frequency = parseInt(document.getElementById("frequency").value);
-// 	var cutoff    = parseInt(document.getElementById("cutoff").value);
+	var frequency = parseInt(document.getElementById("frequency").value);
+	var cutoff    = parseInt(document.getElementById("cutoff").value);
 
-// 	var word = 0;			
-// 	var index = 0;
+	var word = 0;			
+	var index = 0;
 
-// 	for(var z = 0; z < 128; z++) {
-// 		var t = z * (1 / 4000);                        // time in seconds
-// 		var v = Math.sin(t * frequency * 2 * Math.PI); // sine wave
-// 		var s = Math.floor((v + 1) * 128);             // offset and scale
-// 		// draw some nice waveform displays
-// 		g.fillStyle = emulator.fillColor2;
-// 		g.fillRect(z*(w/128), h-(s*(h/256)), (w/128), s*(h/256));
-// 		if (s >= cutoff) {
-// 			g.fillStyle = emulator.fillColor;
-// 			g.fillRect(z*(w/128), h-(cutoff*(h/256)), (w/128), cutoff*(h/256));
-// 		}
+	for(var z = 0; z < 128; z++) {
+		var t = z * (1 / 4000);                        // time in seconds
+		var v = Math.sin(t * frequency * 2 * Math.PI); // sine wave
+		var s = Math.floor((v + 1) * 128);             // offset and scale
+		// draw some nice waveform displays
+		g.fillStyle = emulator.fillColor2;
+		g.fillRect(z*(w/128), h-(s*(h/256)), (w/128), s*(h/256));
+		if (s >= cutoff) {
+			g.fillStyle = emulator.fillColor;
+			g.fillRect(z*(w/128), h-(cutoff*(h/256)), (w/128), cutoff*(h/256));
+		}
 
-// 		// build up a bit vector
-// 		word = (word << 1) | ((s >= cutoff) ? 1 : 0);
-// 		if ((z % 8) == 7) {
-// 			generatedPattern[index++] = word;
-// 			word = 0;
-// 		}
-// 	}
-// 	document.getElementById("generatedPattern").value = getAudioHex(generatedPattern);
-// }
+		// build up a bit vector
+		word = (word << 1) | ((s >= cutoff) ? 1 : 0);
+		if ((z % 8) == 7) {
+			generatedPattern[index++] = word;
+			word = 0;
+		}
+	}
+	document.getElementById("generatedPattern").value = getAudioHex(generatedPattern);
+}
 
-// function parseAudio(id) {
-// 	var pattern = document.getElementById(id).value;
-// 	pattern = pattern.replace("[", "");
-// 	pattern = pattern.replace("]", "");
-// 	pattern = pattern.match(/\S+/g) || []
-// 	var buffer = [];
-// 	for(var z = 0; z < 16; z++) { buffer[z] = 0; }
-// 	for(var z = 0; z < Math.min(pattern.length, 16); z++) {
-// 		buffer[z] = parse(pattern[z].trim());
-// 	}
-// 	return buffer;
-// }
+function parseAudio(id) {
+	var pattern = document.getElementById(id).value;
+	pattern = pattern.replace("[", "");
+	pattern = pattern.replace("]", "");
+	pattern = pattern.match(/\S+/g) || []
+	var buffer = [];
+	for(var z = 0; z < 16; z++) { buffer[z] = 0; }
+	for(var z = 0; z < Math.min(pattern.length, 16); z++) {
+		buffer[z] = parse(pattern[z].trim());
+	}
+	return buffer;
+}
 
-// function parseWaveforms() {
-// 	blendPattern = parseAudio("blendPattern");
-// 	generatedPattern = parseAudio("generatedPattern");
-// 	audioPattern = parseAudio("audioPattern");
-// }
+function parseWaveforms() {
+	blendPattern = parseAudio("blendPattern");
+	generatedPattern = parseAudio("generatedPattern");
+	audioPattern = parseAudio("audioPattern");
+}
 
-// function editAudioHex(id)
-// {
-// 	var data = parseAudio(id);
-// 	var empty = false;
+function editAudioHex(id)
+{
+	var data = parseAudio(id);
+	var empty = false;
 
-// 	if(document.getElementById(id).value.trim() == "") {
-// 		empty = true;
-// 	}
-// 	if(id == 'audioPattern') {
-// 		audioPattern = data;
-// 		drawAudio();
-// 		if(empty) {
-// 			document.getElementById(id).value =  getAudioHex(audioPattern);
-// 		}
-// 	} 
-// 	if(id == 'blendPattern') {
-// 		blendPattern = data;
-// 		if(empty) {
-// 			document.getElementById(id).value =  getAudioHex(blendPattern);
-// 		}
-// 	}
-// 	if(id == 'generatedPattern') {
-// 		generatedPattern = data;
-// 		if(empty) {
-// 			document.getElementById(id).value =  getAudioHex(generatedPattern);
-// 		}
-// 	}
-// }
+	if(document.getElementById(id).value.trim() == "") {
+		empty = true;
+	}
+	if(id == 'audioPattern') {
+		audioPattern = data;
+		drawAudio();
+		if(empty) {
+			document.getElementById(id).value =  getAudioHex(audioPattern);
+		}
+	} 
+	if(id == 'blendPattern') {
+		blendPattern = data;
+		if(empty) {
+			document.getElementById(id).value =  getAudioHex(blendPattern);
+		}
+	}
+	if(id == 'generatedPattern') {
+		generatedPattern = data;
+		if(empty) {
+			document.getElementById(id).value =  getAudioHex(generatedPattern);
+		}
+	}
+}
 
-// function drawAudio() {
-// 	var canvas = document.getElementById("drawAudio");
-// 	var render = canvas.getContext("2d");
-// 	render.fillStyle = emulator.backgroundColor;
-// 	render.fillRect(0, 0, canvas.width, canvas.height);
-// 	render.fillStyle = emulator.fillColor;
+function drawAudio() {
+	var canvas = document.getElementById("drawAudio");
+	var render = canvas.getContext("2d");
+	render.fillStyle = emulator.backgroundColor;
+	render.fillRect(0, 0, canvas.width, canvas.height);
+	render.fillStyle = emulator.fillColor;
     
-// 	for(var z = 0; z < 8 * 16; z++) {
-// 		var a = Math.floor(z / 8);
-// 		var b = 7 - Math.floor(z % 8);
-// 		if (((audioPattern[a] >> b) & 1) == 0) { continue; }
-// 		render.fillRect(z * 2, 0, 2, 32);
-// 	}
-// }
+	for(var z = 0; z < 8 * 16; z++) {
+		var a = Math.floor(z / 8);
+		var b = 7 - Math.floor(z % 8);
+		if (((audioPattern[a] >> b) & 1) == 0) { continue; }
+		render.fillRect(z * 2, 0, 2, 32);
+	}
+}
 
-// function playAudio() {
-// 	// initialize sound if necessary
-// 	if (!audioSetup()) {
-// 		document.getElementById("audioError").innerHTML = "Your browser doesn't support HTML5 Audio!";
-// 		return;
-// 	}
+function playAudio() {
+	// initialize sound if necessary
+	if (!audioSetup()) {
+		document.getElementById("audioError").innerHTML = "Your browser doesn't support HTML5 Audio!";
+		return;
+	}
 
-// 	// parse the sound length
-// 	var soundLength = parseInt(document.getElementById("time").value);
-// 	if (typeof soundLength != "number" || isNaN(soundLength)) {
-// 		document.getElementById("error").innerHTML = "Invalid Duration.";
-// 		return;
-// 	}
+	// parse the sound length
+	var soundLength = parseInt(document.getElementById("time").value);
+	if (typeof soundLength != "number" || isNaN(soundLength)) {
+		document.getElementById("error").innerHTML = "Invalid Duration.";
+		return;
+	}
 
-// 	// parse the input string into a byte array, padding with zeros if necessary:
-// 	var buffer = parseAudio("audioPattern");
+	// parse the input string into a byte array, padding with zeros if necessary:
+	var buffer = parseAudio("audioPattern");
 
-// 	playPattern(soundLength, buffer);
-// }
+	playPattern(soundLength, buffer);
+}
 
-// function getAudioHex(buffer) {
-// 	var hex = "";
-// 	var maxBytes = 16;
-// 	for(var z = 0; z < maxBytes; z++) {
-// 		var digits = buffer[z].toString(16).toUpperCase();
-// 		hex += "0x" + (digits.length == 1 ? "0"+digits : digits) + " ";
-// 		if (z % 8 == 7) { hex += "\n"; }
-// 	}
-// 	return hex;
-// }
+function getAudioHex(buffer) {
+	var hex = "";
+	var maxBytes = 16;
+	for(var z = 0; z < maxBytes; z++) {
+		var digits = buffer[z].toString(16).toUpperCase();
+		hex += "0x" + (digits.length == 1 ? "0"+digits : digits) + " ";
+		if (z % 8 == 7) { hex += "\n"; }
+	}
+	return hex;
+}
 
-// function dragAudio(event) {
-// 	if (mode == 0) { return; }
-// 	var rect = document.getElementById("drawAudio").getBoundingClientRect();
-// 	var mx   = Math.floor((event.clientX - rect.left)/2);
-// 	var dest = Math.floor(mx / 8);
-// 	var src  = 128 >> (mx % 8);
-// 	if (mode == 1) {
-// 		audioPattern[dest] |= src; // draw
-// 	}
-// 	else {
-// 		audioPattern[dest] &= ~src; // erase
-// 	}
+function dragAudio(event) {
+	if (mode == 0) { return; }
+	var rect = document.getElementById("drawAudio").getBoundingClientRect();
+	var mx   = Math.floor((event.clientX - rect.left)/2);
+	var dest = Math.floor(mx / 8);
+	var src  = 128 >> (mx % 8);
+	if (mode == 1) {
+		audioPattern[dest] |= src; // draw
+	}
+	else {
+		audioPattern[dest] &= ~src; // erase
+	}
 
-// 	document.getElementById("audioPattern").value = getAudioHex(audioPattern);
-// 	drawAudio();
-// }
+	document.getElementById("audioPattern").value = getAudioHex(audioPattern);
+	drawAudio();
+}
 
-// function releaseAudio(event)    { mode = 0; dragAudio(event); }
-// function pressDrawAudio(event)  { if (event.button == 2) {mode = 2;} else {mode = 1;} dragAudio(event); }
+function releaseAudio(event)    { mode = 0; dragAudio(event); }
+function pressDrawAudio(event)  { if (event.button == 2) {mode = 2;} else {mode = 1;} dragAudio(event); }
 
-// var audioPattern = [];
-// var blendPattern = [];
-// var generatedPattern = [];
+var audioPattern = [];
+var blendPattern = [];
+var generatedPattern = [];
 
-// function InitializeAudioEditor() {
-// 	for(var z = 0; z < 16; z++) { 
-// 		audioPattern[z] = 0;
-// 		blendPattern[z] = 0;
-// 	}
-// 	generateWaveform();
-// 	document.getElementById("audioPattern").value 	  =	getAudioHex(audioPattern);
-// 	document.getElementById("blendPattern").value     =	getAudioHex(blendPattern);
-// 	drawAudio();
-// }
-// InitializeAudioEditor();
+function InitializeAudioEditor() {
+	for(var z = 0; z < 16; z++) { 
+		audioPattern[z] = 0;
+		blendPattern[z] = 0;
+	}
+	generateWaveform();
+	document.getElementById("audioPattern").value 	  =	getAudioHex(audioPattern);
+	document.getElementById("blendPattern").value     =	getAudioHex(blendPattern);
+	drawAudio();
+}
+InitializeAudioEditor();
 
-// var audioCanvas = document.getElementById("drawAudio");
-// audioCanvas.addEventListener("mousemove", dragAudio, false);
-// audioCanvas.addEventListener("mousedown", pressDrawAudio, false);
-// audioCanvas.addEventListener("mouseup"  , releaseAudio, false);
-// audioCanvas.oncontextmenu = function(event) { dragAudio(event); return false; };
-// audioCanvas.addEventListener("mouseout", releaseAudio, false);
+var audioCanvas = document.getElementById("drawAudio");
+audioCanvas.addEventListener("mousemove", dragAudio, false);
+audioCanvas.addEventListener("mousedown", pressDrawAudio, false);
+audioCanvas.addEventListener("mouseup"  , releaseAudio, false);
+audioCanvas.oncontextmenu = function(event) { dragAudio(event); return false; };
+audioCanvas.addEventListener("mouseout", releaseAudio, false);

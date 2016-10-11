@@ -103,8 +103,8 @@ h3 {
    display: flex;
    -webkit-flex-direction: column;
    flex-direction: column;
-   -webkit-align-items: center;
-   align-items: center;
+   /*-webkit-align-items: center;*/
+   /*align-items: center;*/
    -webkit-justify-content: center;
    justify-content: center;
    margin: 20px;
@@ -115,7 +115,7 @@ h3 {
    flex-direction: row;
 }
 
-#spriteEditor {
+.rightpanel {
     text-align: center;
     margin: 20px;
 }
@@ -175,8 +175,8 @@ h3 {
 
 @media(min-width:650px) {
     #target {
-        width: 500px;
-        height: 250px;
+        width: 450px;
+        height: 225px;
     }
 
     .row {
@@ -188,7 +188,7 @@ h3 {
 
 @media(min-width:750px) {
     #target {
-        width: 600px;
-        height: 300px;
+        width: 550px;
+        height: 275px;
     }
 }
