@@ -150,7 +150,7 @@ function renderDisplay(emulator) {
         colors: colors,
         p: [emulator.p[0].slice(), emulator.p[1].slice()]
     };
-    getTransform(emulator, canvas);
+    // getTransform(emulator, canvas);
     var canvasContext = canvas.getContext("2d");
     canvasContext.fillStyle = emulator.backgroundColor;
     canvasContext.fillRect(0, 0, canvas.width, canvas.height);

@@ -69,6 +69,8 @@ function run() {
     if (emulator.screenRotation % 180 !== 0) {
         document.getElementById('emulator').classList.add('vertical');
     }
+    var canvas = document.getElementById('target');
+    getTransform(emulator, canvas);
     runRom(compile());
 }
 
