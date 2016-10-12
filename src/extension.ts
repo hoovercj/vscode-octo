@@ -18,7 +18,7 @@ export function activate(context: ExtensionContext) {
     let d3 = vscode.commands.registerCommand('octo.showSource', showSource);
     let d4 = vscode.commands.registerCommand('octo.openDocs', openDoc);
     let d5 = vscode.commands.registerCommand('octo.openExample', openExample);
-    let d6 = vscode.commands.registerCommand('octo.decompile', decompile);
+    let d6 = vscode.commands.registerCommand('octo.decompile', decompileSelection);
 
     context.subscriptions.push(d1, d2, d3, d4, d5, d6, registration);
 
@@ -172,16 +172,6 @@ function getOctoOptions(): Octo.OctoOptions {
     options.numericFormat = config.get('numericFormat', 'hex');
 
     return options;
-}
-
-function decompile(): void {
-    switch (vscode.window.activeTextEditor.document.languageId) {
-        case "octo":
-            decompileSelection();
-            break;
-        default:
-            break;
-    }
 }
 
 function decompileSelection(): void {
