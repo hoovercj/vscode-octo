@@ -163,13 +163,16 @@ function getOctoOptions(): Octo.OctoOptions {
     var config = vscode.workspace.getConfiguration('octo');
     var color = config.get('color');
     var options: Octo.OctoOptions = Octo.GetTheme(<Octo.OctoColor>color);
+    options.shiftQuirks = config.get('shiftQuirks', false);
+    options.loadStoreQuirks = config.get('loadStoreQuirks', false);
+    options.vfOrderQuirks = config.get('vfOrderQuirks', false);
     options.clipQuirks = config.get('clipQuirks', false);
     options.jumpQuirks = config.get('jumpQuirks', false);
-    options.shiftQuirks = config.get('shiftQuirks', false);
     options.enableXO = config.get('enableX0', false);
-    options.screenRotation = config.get('screenRotation', 0);
     options.tickrate = config.get('tickrate', 20);
+    options.screenRotation = config.get('screenRotation', 0);
     options.numericFormat = config.get('numericFormat', 'hex');
+    options.numericMask = config.get('numericMask', false);
 
     return options;
 }

@@ -65,6 +65,8 @@ There are several options that can ve configured in user or workspace settings:
 
 ## Known Issues
 This is an early version and I may not have understood all of the features of the original development environment. Please report issues [here](https://github.com/hoovercj/vscode-octo/issues).
+- After changing a configuration setting, the .8o file must be edited before the emulator will refresh
+- Sometimes an example or document doesn't open the first time. Try opening it again.
 
 ## Release Notes
 
