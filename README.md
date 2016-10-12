@@ -64,9 +64,10 @@ There are several options that can ve configured in user or workspace settings:
 ![Speed selector](images/speed.gif)  
 
 ## Known Issues
-This is an early version and I may not have understood all of the features of the original development environment. Please report issues [here](https://github.com/hoovercj/vscode-octo/issues).
+This is an early version and I may not have understood all of the features of the original development environment. Please report issues and feature requests [here](https://github.com/hoovercj/vscode-octo/issues).
 - After changing a configuration setting, the .8o file must be edited before the emulator will refresh
-- Sometimes an example or document doesn't open the first time. Try opening it again.
+- Sometimes an example or doc doesn't open the first time. Try opening it again.
+- Related to the above, examples or docs left open when you close a workspace may fail to load when the workspace is re-opened
 
 ## Release Notes
 

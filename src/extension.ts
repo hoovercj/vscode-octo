@@ -13,8 +13,8 @@ export function activate(context: ExtensionContext) {
     let provider = new OctoDocumentContentProvider();
     let registration = vscode.workspace.registerTextDocumentContentProvider('octo', provider);
 
-    let d1 = vscode.commands.registerCommand('octo.showTools', showPreview);
-    let d2 = vscode.commands.registerCommand('octo.showToolsToSide', uri => showPreview(uri, true));
+    let d1 = vscode.commands.registerCommand('octo.showTools', showTools);
+    let d2 = vscode.commands.registerCommand('octo.showToolsToSide', uri => showTools(uri, true));
     let d3 = vscode.commands.registerCommand('octo.showSource', showSource);
     let d4 = vscode.commands.registerCommand('octo.openDocs', openDoc);
     let d5 = vscode.commands.registerCommand('octo.openExample', openExample);
@@ -82,7 +82,7 @@ function getViewColumn(sideBySide): ViewColumn {
     return active.viewColumn;
 }
 
-function showPreview(uri?: Uri, sideBySide: boolean = false) {
+function showTools(uri?: Uri, sideBySide: boolean = false) {
 
     let resource = uri;
     if (!(resource instanceof Uri)) {
@@ -103,7 +103,7 @@ function showPreview(uri?: Uri, sideBySide: boolean = false) {
     let thenable = vscode.commands.executeCommand('vscode.previewHtml',
         getOctoUri(resource),
         getViewColumn(sideBySide),
-        `Preview '${path.basename(resource.fsPath)}'`);
+        `Octo: '${path.basename(resource.fsPath)}'`);
 
     return thenable;
 }
