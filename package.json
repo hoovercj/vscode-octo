@@ -41,10 +41,6 @@
             "aliases": ["Octo", "octo"],
             "extensions": [".8o"],
             "configuration": "./language-configuration.json"
-        },{
-            "id": "chip8",
-            "aliases": ["Chip8", "chip8"],
-            "extensions": [".ch8"]
         }],
         "grammars": [{
             "language": "octo",
@@ -149,6 +145,7 @@
                     "default": 0,
                     "description": "The degrees clockwise the screen should be rotated.",
                     "enum": [
+                        0,
                         90,
                         180,
                         270,
