@@ -73,6 +73,7 @@ This is an early version and I may not have understood all of the features of th
 
 ### 0.1.0
 Beta release (Should be feature complete)
+- Breaking: Renamed command from "octo.openPreview" to "octo.openTools"
 
 ### 0.0.1
 Alpha/Preview release
