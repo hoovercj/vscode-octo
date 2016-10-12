@@ -290,3 +290,10 @@ function escapeHtml(str) {
     div.appendChild(document.createTextNode(str));
     return div.innerHTML;
 }
+
+function copyHex() {
+    var input = document.getElementById('decompileInput');
+    input.select();
+    document.execCommand('copy');
+    document.getElementById('copiedText').style.display = 'inline';
+}

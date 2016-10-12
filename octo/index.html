@@ -123,13 +123,15 @@
         </table>
         <div id="bintools" class="rightpanel" style="display:none">
             <h3>Open .ch8 Binary</h3>
-            Note that decompilation can be slow.<br/> Enter a byte array:<br/>
-            <textarea id="decompileInput" rows="6" cols="40">[0xD0, 0x15, 0x70, 0x04, 0x40, 0x40, 0x71, 0x05, 0x40, 0x40, 0x60, 0x00, 0x12, 0x00]</textarea><br/>
+            Note that decompilation can be slow.<br/> Select a file to read into the text area below as a byte array. The byte array can then be pasted into an editor and decompiled with the "Octo: Decompile" command:<br/>
+            <textarea id="decompileInput" rows="6" cols="40"></textarea><br/>
             <!--<button type="button" onclick="decompileStart()">Decompile</button>-->
             <button type="button" onclick="decompileFile()">Open File...</button>
+            <button type="button" onclick="copyHex()">Copy to clipboard</button>
+            <span id="copiedText" style="display:none">Copied!</span>
             <input type="file" id="fileinput" onchange="decompileRequestLoad()" style="display:none">
             <h3>File Output</h3>
-            <button type="button" onclick="saveBinaryFile()">Save opened octo file as .ch8 File</button>
+            <button type="button" onclick="saveBinaryFile()">Save the current octo file as a .ch8 File</button>
         </div>
 
     </div>
