@@ -28,7 +28,8 @@
         <button title="toggle keypad" src="images/keypad.png" onclick="toggleKeypad()" style="padding-left: 10px;">Toggle keypad</button>
         <button type="button" onClick="toggleSpriteEditor();">Sprite Editor</button>
         <button type="button" onClick="toggleAudioEditor();" class="xofeature" style="display:inline" style="display:none">Audio Editor</button>
-        <button type="button" onClick="toggleBinaryTools();">Binary Tools</button>
+        <button type="button" onClick="toggleBinaryTools();">Decompile</button>
+        <button type="button" onclick="saveBinaryFile()">Export .ch8 File</button>
     </div>
 
     <div class="flex-container row">
@@ -131,7 +132,6 @@
             <span id="copiedText" style="display:none">Copied!</span>
             <input type="file" id="fileinput" onchange="decompileRequestLoad()" style="display:none">
             <h3>File Output</h3>
-            <button type="button" onclick="saveBinaryFile()">Save the current octo file as a .ch8 File</button>
         </div>
 
     </div>

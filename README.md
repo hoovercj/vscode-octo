@@ -7,6 +7,25 @@ This extension provides language support for the Octo language based on the [dev
 
 There are also commands to open docs and examples and to decompile ch8 hex instructions right in the editor pane. All emulator, compiler, and decompiler options are configured in user or workspace settings. More info on all of that below. 
 
+## Features
+- Syntax highlighting
+- Emulator (test changes instantly)
+- Debugging
+- Sprite Editor
+- Audio Editor
+- Compile to/Decompile from .ch8 files
+- Chip8, SuperChip, and XO support
+- Save screenshot
+- Themes + Custom coloring
+- Quirk Configuration
+- Open docs and examples
+
+## Compile/Decompile
+Compiling to .ch8 is as easy as opening the tools and clicking the "Export .ch8" button.  
+There are two ways to decompile:
+1. Paste a hex array into the vscode editor and use the `Octo: Decompile` command to decompile it. It will decompile the selection if there is one, or the whole file if there isn't one.
+2. Open the tools and click the "decompile" button, import a file, and start from step 1.
+
 ## Documentation
 The command `Octo: Open docs` lets you pick from several guides including beginners guides, algorithmic tutorials, and explanations of a few included examples.
 
@@ -36,24 +55,21 @@ There are several options that can ve configured in user or workspace settings:
 `octo.color.buzzColor`: The hex value for the buzzer color.  
 `octo.color.quietColor`: The hex value for the silence color.  
 
-
-
-## Features
-- Syntax highlighting
-- Emulator (test changes instantly)
-![Run](images/preview.gif)  
+## Screenshots
+- Test changes instantly)
 ![Changes](images/edit.gif)  
-- Debugging
 - Sprite Editor
 ![Sprite Editing](images/sprites.gif)  
 - Speed selector (cycles/frame)
 ![Speed selector](images/speed.gif)  
 
 ## Known Issues
-
-This is a very early prototype and doesn't support all of the features of the full development environment.
+This is an early version and I may not have understood all of the features of the original development environment. Please report issues [here](https://github.com/hoovercj/vscode-octo/issues).
 
 ## Release Notes
+
+### 0.1.0
+Beta release (Should be feature complete)
 
 ### 0.0.1
 Alpha/Preview release
