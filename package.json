@@ -1,16 +1,22 @@
 {
-    "name": "octo-language",
-    "displayName": "octo-language",
-    "description": "",
+    "name": "vscode-octo",
+    "displayName": "Octo Language Support",
+    "description": "vscode support for the Octo language",
     "version": "0.1.0",
     "publisher": "hoovercj",
     "engines": {
         "vscode": "^1.5.0"
     },
+    "icon": "images/icon.png",
     "repository": {
         "type": "git",
-        "url": "https://github.com/hoovercj/vscode-octo"
+        "url": "https://github.com/hoovercj/vscode-ghc-mod.git"
     },
+    "bugs": {
+        "url": "https://github.com/hoovercj/vscode-ghc-mod/issues"
+    },
+    "homepage": "https://github.com/hoovercj/vscode-gh-mod",
+    "license": "MIT",
     "categories": [
         "Languages",
         "Other",
