@@ -200,6 +200,14 @@ function reset() {
 ////////////////////////////////////
 
 function render() {
+    if (emulator.metadata === {}
+      || emulator.pc == null
+      || emulator.metadata == null
+      || emulator.metadata.breakpoints == null) {
+        clearTimeout(intervalHandle);
+        return;
+    }
+
     for(var z = 0; (z < emulator.tickrate) && (!emulator.waiting); z++) {
         if (emulator.breakpoint != true) {
             emulator.tick();
