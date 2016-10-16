@@ -85,7 +85,6 @@ function compile() {
     var c = new Compiler(input.value);
     try {
         output.value = "";
-        // output.style.display = "none";
         c.go();
         if (c.xo && (!emulator.enableXO)) {
             throw "Rom makes use of XO-Chip extensions. They must be enabled in the Options panel.";
@@ -94,7 +93,6 @@ function compile() {
             throw "Rom is too large- " + (c.rom.length-MAX_ROM) + " bytes over!";
         }
         output.value = display(c.rom);
-        // output.style.display = "inline";
         status.innerHTML = ((c.rom.length) + " bytes, " + (MAX_ROM-c.rom.length) + " free.");
         status.style.backgroundColor = "black";
         if (c.schip) { status.innerHTML += " (SuperChip instructions used)"; }
@@ -130,15 +128,13 @@ function runRom(rom) {
     emulator.init(rom);
     setRenderTarget("target");
     audioSetup();
-    // document.getElementById("emulator").style.display = "inline";
-    // document.getElementById("emulator").style.backgroundColor = emulator.quietColor;
+    document.getElementById("emulator").style.backgroundColor = emulator.quietColor;
     window.addEventListener("keydown", keyDown, false);
     window.addEventListener("keyup", keyUp, false);
     window.intervalHandle = setInterval(render, 1000/60);
 }
 
 function reset() {
-    // document.getElementById("emulator").style.display = "none";
     window.removeEventListener("keydown", keyDown, false);
     window.removeEventListener("keyup"  , keyUp  , false);
     clearInterval(window.intervalHandle);
@@ -279,142 +275,14 @@ function keyUp(event) {
 
 ////////////////////////////////////
 //
-//   Manual
-//
-////////////////////////////////////
-
-function toggleManual() {
-    var manual = document.getElementById("manual");
-    if (manual.style.display == "none") {
-        manual.style.display = "inline";
-    }
-    else {
-        manual.style.display = "none";
-    }
-}
-
-////////////////////////////////////
-//
 //   Options
 //
 ////////////////////////////////////
 
+// called from index.html
 function framerate() {
     emulator.tickrate = document.getElementById("framerate").value;
 }
-
-function editRotation() {
-    emulator.screenRotation = parseInt(document.getElementById("screenRotation").value);
-}
-
-function editFore1() {
-    var val = document.getElementById("foreEdit1").value;
-    document.getElementById("foreSample1").bgColor = val;
-    emulator.fillColor = val;
-    showPixels();
-}
-
-function editFore2() {
-    var val = document.getElementById("foreEdit2").value;
-    document.getElementById("foreSample2").bgColor = val;
-    emulator.fillColor2 = val;
-    showPixels();
-}
-
-function editBlend() {
-    var val = document.getElementById("blendEdit").value;
-    document.getElementById("blendSample").bgColor = val;
-    emulator.blendColor = val;
-    showPixels();
-}
-
-function editBack() {
-    var val = document.getElementById("backEdit").value;
-    document.getElementById("backSample").bgColor = val;
-    emulator.backgroundColor = val;
-    showPixels();
-}
-
-function editBuzz() {
-    var val = document.getElementById("buzzEdit").value;
-    document.getElementById("buzzSample").bgColor = val;
-    emulator.buzzColor = val;
-}
-
-function editSilent() {
-    var val = document.getElementById("silentEdit").value;
-    document.getElementById("silentSample").bgColor = val;
-    emulator.quietColor = val;
-}
-
-function palettePreset() {
-    var val = document.getElementById("palettePreset").value;
-    if (val.length < 1) { return; }
-    if (val == 'classic') {
-        document.getElementById("foreEdit1") .value = "#FFCC00"; editFore1();
-        document.getElementById("foreEdit2") .value = "#FF6600"; editFore2();
-        document.getElementById("blendEdit") .value = "#662200"; editBlend();
-        document.getElementById("backEdit")  .value = "#996600"; editBack();
-        document.getElementById("buzzEdit")  .value = "#FFAA00"; editBuzz();
-        document.getElementById("silentEdit").value = "#000000"; editSilent();
-        return;
-    }
-    val = JSON.parse(val);
-    if (emulator.enableXO) {
-        document.getElementById("foreEdit1").value = val[0]; editFore1();
-        document.getElementById("foreEdit2").value = val[1]; editFore2();
-        document.getElementById("blendEdit").value = val[2]; editBlend();
-        document.getElementById("backEdit") .value = val[3]; editBack();
-    }
-    else {
-        document.getElementById("foreEdit1").value = val[0]; editFore1();
-        document.getElementById("backEdit" ).value = val[1]; editBack();
-    }
-    document.getElementById("buzzEdit")  .value = val[4]; editBuzz();
-    document.getElementById("silentEdit").value = val[5]; editSilent();
-}
-
-function setQuirks(flag) {
-    emulator[flag] = document.getElementById(flag).checked;
-}
-
-// function setEnableXO() {
-//     var check = document.getElementById("enableXO");
-//     emulator.enableXO = check.checked;
-//     if (check.checked) {
-//         var features = document.getElementsByClassName("xofeature");
-//         for(var z = 0; z < features.length; z++) {
-//             var feature = features[z];
-//             feature.style.display = (feature.tagName == "TR") ? "table-row" : "inline";
-//         }
-//     }
-// }
-
-// function toggleOptions() {
-//     var options = document.getElementById("options");
-//     if (options.style.display == "none") {
-//         options.style.display = "inline";
-//         document.getElementById("spriteEditor").style.display = "none";
-//         document.getElementById("bintools").style.display = "none";
-//         document.getElementById("audiotools").style.display = "none";
-//         document.getElementById("foreEdit1"      ).value   = emulator.fillColor;  editFore1();
-//         document.getElementById("foreEdit2"      ).value   = emulator.fillColor2; editFore2();
-//         document.getElementById("blendEdit"      ).value   = emulator.blendColor; editBlend();
-//         document.getElementById("backEdit"       ).value   = emulator.backgroundColor; editBack();
-//         document.getElementById("buzzEdit"       ).value   = emulator.buzzColor;  editBuzz();
-//         document.getElementById("silentEdit"     ).value   = emulator.quietColor; editSilent();
-//         document.getElementById("shiftQuirks"    ).checked = emulator.shiftQuirks;
-//         document.getElementById("loadStoreQuirks").checked = emulator.loadStoreQuirks;
-//         document.getElementById("vfOrderQuirks"  ).checked = emulator.vfOrderQuirks;
-//         document.getElementById("clipQuirks"     ).checked = emulator.clipQuirks;
-//         document.getElementById("jumpQuirks"     ).checked = emulator.jumpQuirks;
-//         document.getElementById("enableXO"       ).checked = emulator.enableXO;
-//         document.getElementById("screenRotation" ).value   = emulator.screenRotation;
-//     }
-//     else {
-//         options.style.display = "none";
-//     }
-// }
 
 ////////////////////////////////////
 //
