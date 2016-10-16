@@ -144,11 +144,12 @@ h3 {
 }
 
 .wrapped {
-    position: absolute;
+    position: relative;
     width: 100%;
 }
 
 .vertical.wrapper .wrapped {
+    position: absolute;
     height: 100%;
 }
 
