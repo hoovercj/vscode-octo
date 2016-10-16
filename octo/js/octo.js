@@ -281,7 +281,9 @@ function keyUp(event) {
 
 // called from index.html
 function framerate() {
-    emulator.tickrate = document.getElementById("framerate").value;
+    var newTickrate = document.getElementById("framerate").value;
+    emulator.tickrate = newTickrate;
+    defaultOptions.tickrate = newTickrate;
 }
 
 ////////////////////////////////////
