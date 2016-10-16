@@ -140,7 +140,7 @@ function renderDisplay(emulator) {
 
     // Canvas rendering can be expensive. Exit out early if nothing has changed.
     // NOTE: toggling emulator.hires changes emulator.p dimensions.
-    var colors = [emulator.backColor, emulator.fillColor, emulator.fillColor2, emulator.blendColor];
+    var colors = [emulator.backgroundColor, emulator.fillColor, emulator.fillColor2, emulator.blendColor];
     if (canvas.last !== undefined
             && arrayEqual(canvas.last.p[0], emulator.p[0]) && arrayEqual(canvas.last.p[1], emulator.p[1])
             && arrayEqual(canvas.last.colors, colors)) {
@@ -150,7 +150,6 @@ function renderDisplay(emulator) {
         colors: colors,
         p: [emulator.p[0].slice(), emulator.p[1].slice()]
     };
-    // getTransform(emulator, canvas);
     var canvasContext = canvas.getContext("2d");
     canvasContext.fillStyle = emulator.backgroundColor;
     canvasContext.fillRect(0, 0, canvas.width, canvas.height);
@@ -160,7 +159,7 @@ function renderDisplay(emulator) {
 
     for(var z = 0; z < max; z++) {
         var color = getColor(emulator.p[0][z] + (emulator.p[1][z] * 2));
-        if (color == emulator.backColor) {
+        if (color == emulator.backgroundColor) {
             continue;  // it's pointless to draw the background color
         }
         canvasContext.fillStyle = color;
