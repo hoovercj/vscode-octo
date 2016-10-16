@@ -71,6 +71,11 @@ This is an early version and I may not have understood all of the features of th
 
 ## Release Notes
 
+### 0.2.0
+Cleanup and several bug fixes including:
+- Major: Fixed a bug that the tickrate to increase as a file was edited
+- Fixed bugs around colors and theming
+
 ### 0.1.0
 Beta release (Should be feature complete)
 - Breaking: Renamed command from "octo.openPreview" to "octo.openTools"
