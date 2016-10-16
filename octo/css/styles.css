@@ -4,6 +4,10 @@ html, body {
     font-family: Courier New,Courier,Lucida Sans Typewriter,Lucida Typewriter,monospace;
 }
 
+#content {
+    min-height: 400px;
+}
+
 .menubar {
     width: 100%;
     text-align: center;

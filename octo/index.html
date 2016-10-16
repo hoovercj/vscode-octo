@@ -27,177 +27,177 @@
         <button type="button" onClick="toggleBinaryTools();">Decompile</button>
         <button type="button" onclick="saveBinaryFile()">Export .ch8 File</button>
     </div>
-
-    <div class="flex-container row">
-        <div id="emulator" class="wrapper canv">
-            <canvas id="target"class="wrapped"></canvas>
-        </div>
-        <div id="spriteEditor" class="rightpanel" style="display:none">
-            <h3>Sprite Editor</h3>
-            <div>
-                Click and drag to draw.<br/> Right-click and drag to erase.<br/><br/>
-                <input type="checkbox" id="spriteEditorSize" onchange="setSpriteEditorSize();">
-                <label for="spriteEditorSize">16x16 mode</label>
-                <br/>
-                <div class="xofeature" style="display:inline">
-                    <input type="checkbox" id="spriteEditorColor" onchange="setSpriteEditorColor();">
-                    <label for="spriteEditorColor">Color mode</label>
+    <div id="content">
+        <div class="flex-container row">
+            <div id="emulator" class="wrapper canv">
+                <canvas id="target"class="wrapped"></canvas>
+            </div>
+            <div id="spriteEditor" class="rightpanel" style="display:none">
+                <h3>Sprite Editor</h3>
+                <div>
+                    Click and drag to draw.<br/> Right-click and drag to erase.<br/><br/>
+                    <input type="checkbox" id="spriteEditorSize" onchange="setSpriteEditorSize();">
+                    <label for="spriteEditorSize">16x16 mode</label>
+                    <br/>
+                    <div class="xofeature" style="display:inline">
+                        <input type="checkbox" id="spriteEditorColor" onchange="setSpriteEditorColor();">
+                        <label for="spriteEditorColor">Color mode</label>
+                    </div>
+                    <br/>
+                    <canvas id="spriteEditorPalette" width="200px" height="25px" style="display:none;"></canvas><br/>
+                    <canvas id="draw" width="200" height="375" style="border:1px solid;"></canvas><br/>
+                    <textarea id="spriteData" rows="10" cols="25" onchange="editHex();" onkeyup="editHex();"></textarea>
                 </div>
-                <br/>
-                <canvas id="spriteEditorPalette" width="200px" height="25px" style="display:none;"></canvas><br/>
-                <canvas id="draw" width="200" height="375" style="border:1px solid;"></canvas><br/>
-                <textarea id="spriteData" rows="10" cols="25" onchange="editHex();" onkeyup="editHex();"></textarea>
+            </div>
+            <div id="audiotools" class="rightpanel" style="display:none">
+                <h3>Audio Editor</h3>
+                Enter a pattern of 16 bytes:<br>
+                <canvas id="drawAudio" width="256" height="32"></canvas>
+                </br>
+                <textarea id="audioPattern" rows="4" cols="40" spellcheck="false" onchange="editAudioHex('audioPattern');" onkeyup="editAudioHex('audioPattern');"></textarea><br>
+                <select id="audioPreset" onchange="presetAudio();">
+                            <option value="">Choose a preset...</option>
+                            <option value="0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00">1/2 Duty Square Wave</option>
+                            <option value="0xFF 0xFF 0xFF 0xFF 0x00 0x00 0x00 0x00 0xFF 0xFF 0xFF 0xFF 0x00 0x00 0x00 0x00">1/4 Duty Square Wave</option>
+                            <option value="0xFF 0xFF 0x00 0x00 0xFF 0xFF 0x00 0x00 0xFF 0xFF 0x00 0x00 0xFF 0xFF 0x00 0x00">1/8 Duty Square Wave</option>
+                            <option value="0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00">1/16 Duty Square Wave</option>
+                            <option value="0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0">1/32 Duty Square Wave</option>
+                            <option value="0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC">1/64 Duty Square Wave</option>
+                            <option value="0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA">1/128 Duty Square Wave</option>
+                            <option value="0x10 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x10 0x00 0x00 0x00 0x00 0x00 0x00 0x00">High Grind</option>
+                            <option value="0xAA 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0xAA 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Medium Grind</option>
+                            <option value="0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Low Grind</option>
+                            <option value="0xF0 0xF0 0xF0 0xF0 0xcc 0xcc 0xcc 0xcc 0xF0 0xF0 0xF0 0xF0 0xcc 0xcc 0xcc 0xcc">Doorbell</option>
+                            <option value="0x55 0xAA 0x55 0xAA 0x55 0xAA 0x55 0xAA 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Gurgle</option>
+                            <option value="0x02 0xCD 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Click</option>
+                            <option value="0xFF 0x80 0x3F 0xE0 0x0F 0xF8 0x03 0xFF 0x00 0x7F 0xC0 0x8E 0x38 0xE3 0x8E 0x38">A5</option>
+                        </select>
+                <button onclick="randomAudio();">Random</button>
+                <button onclick="shiftAudio(1);">&lt;</button>
+                <button onclick="shiftAudio(-1);">&gt;</button>
+                <br> Duration (1/60ths of a second): <input id="time" type="text" size="4" value="30">
+                <button onclick="playAudio();">Play</button>
+                <div id="audioerror" style="color: red;"></div>
+                <h3>Waveform Blending</h3>
+                Combine this waveform with the one above.<br>
+                <textarea id="blendPattern" rows="4" cols="40" spellcheck="false" onchange="editAudioHex('blendPattern');" onkeyup="editAudioHex('blendPattern');"></textarea><br>
+                <button type="button" onclick="blendWaveform('xor');">XOR</button>
+                <button type="button" onclick="blendWaveform('and');">AND</button>
+                <button type="button" onclick="blendWaveform('or');">OR</button>
+                <button type="button" onclick="blendWaveform('not');">NOT (this pattern)</button>
+                <button type="button" onclick="swapWaveforms('blendPattern', 'audioPattern');">Swap</button>
+                <h3>Tone Generator</h3>
+                <canvas id="waveform" width="256" height="64"></canvas><br> Freq. (Hz): <input id="frequency" type="text" size="4" value="440" onchange="generateWaveform();" onkeyup="generateWaveform();">        Cutoff: <input id="cutoff" type="text" size="4" value="128" onchange="generateWaveform();" onkeyup="generateWaveform();">
+                <button type="button" onclick="swapWaveforms('generatedPattern', 'audioPattern');">Swap</button>
+                <br><textarea id="generatedPattern" rows="4" cols="40" spellcheck="false" onchange="editAudioHex('generatedPattern');"
+                    onkeyup="editAudioHex('generatedPattern');"></textarea>
+            </div>
+            <table border="0" id="keypad" style="display:none;">
+                <tr>
+                    <td class="key" id="0x1">1</td>
+                    <td class="key" id="0x2">2</td>
+                    <td class="key" id="0x3">3</td>
+                    <td class="key" id="0xC">C</td>
+                </tr>
+                <tr>
+                    <td class="key" id="0x4">4</td>
+                    <td class="key" id="0x5">5</td>
+                    <td class="key" id="0x6">6</td>
+                    <td class="key" id="0xD">D</td>
+                </tr>
+                <tr>
+                    <td class="key" id="0x7">7</td>
+                    <td class="key" id="0x8">8</td>
+                    <td class="key" id="0x9">9</td>
+                    <td class="key" id="0xE">E</td>
+                </tr>
+                <tr>
+                    <td class="key" id="0xA">A</td>
+                    <td class="key" id="0x0">0</td>
+                    <td class="key" id="0xB">B</td>
+                    <td class="key" id="0xF">F</td>
+                </tr>
+            </table>
+            <div id="bintools" class="rightpanel" style="display:none">
+                <h3>Open .ch8 Binary</h3>
+                Note that decompilation can be slow.<br/> Select a file to read into the text area below as a byte array. The byte array can then be pasted into an editor and decompiled with the "Octo: Decompile" command:<br/>
+                <textarea id="decompileInput" rows="6" cols="40"></textarea><br/>
+                <!--<button type="button" onclick="decompileStart()">Decompile</button>-->
+                <button type="button" onclick="decompileFile()">Open File...</button>
+                <button type="button" onclick="copyHex()">Copy to clipboard</button>
+                <span id="copiedText" style="display:none">Copied!</span>
+                <input type="file" id="fileinput" onchange="decompileRequestLoad()" style="display:none">
+                <h3>File Output</h3>
             </div>
         </div>
-        <div id="audiotools" class="rightpanel" style="display:none">
-            <h3>Audio Editor</h3>
-            Enter a pattern of 16 bytes:<br>
-            <canvas id="drawAudio" width="256" height="32"></canvas>
-            </br>
-            <textarea id="audioPattern" rows="4" cols="40" spellcheck="false" onchange="editAudioHex('audioPattern');" onkeyup="editAudioHex('audioPattern');"></textarea><br>
-            <select id="audioPreset" onchange="presetAudio();">
-                        <option value="">Choose a preset...</option>
-                        <option value="0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00">1/2 Duty Square Wave</option>
-                        <option value="0xFF 0xFF 0xFF 0xFF 0x00 0x00 0x00 0x00 0xFF 0xFF 0xFF 0xFF 0x00 0x00 0x00 0x00">1/4 Duty Square Wave</option>
-                        <option value="0xFF 0xFF 0x00 0x00 0xFF 0xFF 0x00 0x00 0xFF 0xFF 0x00 0x00 0xFF 0xFF 0x00 0x00">1/8 Duty Square Wave</option>
-                        <option value="0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00 0xFF 0x00">1/16 Duty Square Wave</option>
-                        <option value="0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0 0xF0">1/32 Duty Square Wave</option>
-                        <option value="0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC 0xCC">1/64 Duty Square Wave</option>
-                        <option value="0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA 0xAA">1/128 Duty Square Wave</option>
-                        <option value="0x10 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x10 0x00 0x00 0x00 0x00 0x00 0x00 0x00">High Grind</option>
-                        <option value="0xAA 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0xAA 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Medium Grind</option>
-                        <option value="0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0xFF 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Low Grind</option>
-                        <option value="0xF0 0xF0 0xF0 0xF0 0xcc 0xcc 0xcc 0xcc 0xF0 0xF0 0xF0 0xF0 0xcc 0xcc 0xcc 0xcc">Doorbell</option>
-                        <option value="0x55 0xAA 0x55 0xAA 0x55 0xAA 0x55 0xAA 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Gurgle</option>
-                        <option value="0x02 0xCD 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00">Click</option>
-                        <option value="0xFF 0x80 0x3F 0xE0 0x0F 0xF8 0x03 0xFF 0x00 0x7F 0xC0 0x8E 0x38 0xE3 0x8E 0x38">A5</option>
-                    </select>
-            <button onclick="randomAudio();">Random</button>
-            <button onclick="shiftAudio(1);">&lt;</button>
-            <button onclick="shiftAudio(-1);">&gt;</button>
-            <br> Duration (1/60ths of a second): <input id="time" type="text" size="4" value="30">
-            <button onclick="playAudio();">Play</button>
-            <div id="audioerror" style="color: red;"></div>
-            <h3>Waveform Blending</h3>
-            Combine this waveform with the one above.<br>
-            <textarea id="blendPattern" rows="4" cols="40" spellcheck="false" onchange="editAudioHex('blendPattern');" onkeyup="editAudioHex('blendPattern');"></textarea><br>
-            <button type="button" onclick="blendWaveform('xor');">XOR</button>
-            <button type="button" onclick="blendWaveform('and');">AND</button>
-            <button type="button" onclick="blendWaveform('or');">OR</button>
-            <button type="button" onclick="blendWaveform('not');">NOT (this pattern)</button>
-            <button type="button" onclick="swapWaveforms('blendPattern', 'audioPattern');">Swap</button>
-            <h3>Tone Generator</h3>
-            <canvas id="waveform" width="256" height="64"></canvas><br> Freq. (Hz): <input id="frequency" type="text" size="4" value="440" onchange="generateWaveform();" onkeyup="generateWaveform();">        Cutoff: <input id="cutoff" type="text" size="4" value="128" onchange="generateWaveform();" onkeyup="generateWaveform();">
-            <button type="button" onclick="swapWaveforms('generatedPattern', 'audioPattern');">Swap</button>
-            <br><textarea id="generatedPattern" rows="4" cols="40" spellcheck="false" onchange="editAudioHex('generatedPattern');"
-                onkeyup="editAudioHex('generatedPattern');"></textarea>
+        <div id="debugger-row" class="flex-container row">
+            <div class="debugger" id="registerView" style="display:none">
+                register display.
+            </div>
+            <div class="debugger" id="stacktraceView" style="display:none">
+                stack display.
+            </div>
         </div>
-        <table border="0" id="keypad" style="display:none;">
-            <tr>
-                <td class="key" id="0x1">1</td>
-                <td class="key" id="0x2">2</td>
-                <td class="key" id="0x3">3</td>
-                <td class="key" id="0xC">C</td>
-            </tr>
-            <tr>
-                <td class="key" id="0x4">4</td>
-                <td class="key" id="0x5">5</td>
-                <td class="key" id="0x6">6</td>
-                <td class="key" id="0xD">D</td>
-            </tr>
-            <tr>
-                <td class="key" id="0x7">7</td>
-                <td class="key" id="0x8">8</td>
-                <td class="key" id="0x9">9</td>
-                <td class="key" id="0xE">E</td>
-            </tr>
-            <tr>
-                <td class="key" id="0xA">A</td>
-                <td class="key" id="0x0">0</td>
-                <td class="key" id="0xB">B</td>
-                <td class="key" id="0xF">F</td>
-            </tr>
-        </table>
-        <div id="bintools" class="rightpanel" style="display:none">
-            <h3>Open .ch8 Binary</h3>
-            Note that decompilation can be slow.<br/> Select a file to read into the text area below as a byte array. The byte array can then be pasted into an editor and decompiled with the "Octo: Decompile" command:<br/>
-            <textarea id="decompileInput" rows="6" cols="40"></textarea><br/>
-            <!--<button type="button" onclick="decompileStart()">Decompile</button>-->
-            <button type="button" onclick="decompileFile()">Open File...</button>
-            <button type="button" onclick="copyHex()">Copy to clipboard</button>
-            <span id="copiedText" style="display:none">Copied!</span>
-            <input type="file" id="fileinput" onchange="decompileRequestLoad()" style="display:none">
-            <h3>File Output</h3>
+        <div>
+            <textarea id="output" style="display:none;" rows="6" cols="80"></textarea>
         </div>
-    </div>
-    <div id="debugger-row" class="flex-container row">
-        <div class="debugger" id="registerView" style="display:none">
-            register display.
-        </div>
-        <div class="debugger" id="stacktraceView" style="display:none">
-            stack display.
-        </div>
-    </div>
-    <div>
-        <textarea id="output" style="display:none;" rows="6" cols="80"></textarea>
-    </div>
-    <div class="statusbar"><p id="status"></p></div>
-    <textarea id="input" spellcheck="false" style="display:none">{{SOURCE}}</textarea>
-    <!--<script>var defaultOptions = {};</script>-->
-    <!--<textarea id="input" spellcheck="false" style="display:none"># Chip8 is a virtual machine designed in 1977 for programming video games.
-# Octo is a high level assembler, disassembler and simulator for Chip8.
-# Click 'Run' and then press ASWD to move the sprite around the screen.
-# Click the Octo logo for source, documentation and examples.
+        <div class="statusbar"><p id="status"></p></div>
+        <textarea id="input" spellcheck="false" style="display:none">{{SOURCE}}</textarea>
+        <!--<script>var defaultOptions = {};</script>-->
+        <!--<textarea id="input" spellcheck="false" style="display:none"># Chip8 is a virtual machine designed in 1977 for programming video games.
+    # Octo is a high level assembler, disassembler and simulator for Chip8.
+    # Click 'Run' and then press ASWD to move the sprite around the screen.
+    # Click the Octo logo for source, documentation and examples.
 
-:alias px v3
-:alias py v4
+    :alias px v3
+    :alias py v4
 
-: main
-    px := random 0b0011111
-    py := random 0b0001111
-    i  := person
-    sprite px py 8
-
-    loop
-        # erase the player, update its position and then redraw:
-        sprite px py 8
-        v0 := 5   if v0 key then py += -1 # keyboard W
-        v0 := 8   if v0 key then py +=  1 # keyboard S
-        v0 := 7   if v0 key then px += -1 # keyboard A
-        v0 := 9   if v0 key then px +=  1 # keyboard D
+    : main
+        px := random 0b0011111
+        py := random 0b0001111
+        i  := person
         sprite px py 8
 
-        # lock the framerate of this program via the delay timer:
         loop
-            vf := delay
-            if vf != 0 then
+            # erase the player, update its position and then redraw:
+            sprite px py 8
+            v0 := 5   if v0 key then py += -1 # keyboard W
+            v0 := 8   if v0 key then py +=  1 # keyboard S
+            v0 := 7   if v0 key then px += -1 # keyboard A
+            v0 := 9   if v0 key then px +=  1 # keyboard D
+            sprite px py 8
+
+            # lock the framerate of this program via the delay timer:
+            loop
+                vf := delay
+                if vf != 0 then
+            again
+            vf := 3
+            delay := vf
         again
-        vf := 3
-        delay := vf
-    again
 
-    loop
-        # erase the player, update its position and then redraw:
-        sprite px py 8
-        v0 := 5   if v0 key then py += -1 # keyboard W
-        v0 := 8   if v0 key then py +=  1 # keyboard S
-        v0 := 7   if v0 key then px += -1 # keyboard A
-        v0 := 9   if v0 key then px +=  1 # keyboard D
-        sprite px py 8
-
-        # lock the framerate of this program via the delay timer:
         loop
-            vf := delay
-            if vf != 0 then
+            # erase the player, update its position and then redraw:
+            sprite px py 8
+            v0 := 5   if v0 key then py += -1 # keyboard W
+            v0 := 8   if v0 key then py +=  1 # keyboard S
+            v0 := 7   if v0 key then px += -1 # keyboard A
+            v0 := 9   if v0 key then px +=  1 # keyboard D
+            sprite px py 8
+
+            # lock the framerate of this program via the delay timer:
+            loop
+                vf := delay
+                if vf != 0 then
+            again
+            vf := 3
+            delay := vf
         again
-        vf := 3
-        delay := vf
-    again
 
-: person
-    0x70 0x70 0x20 0x70 0xA8 0x20 0x50 0x50
-    </textarea>-->
-
+    : person
+        0x70 0x70 0x20 0x70 0xA8 0x20 0x50 0x50
+        </textarea>-->
+    </div>
     <script type="text/javascript">var defaultOptions = {{OPTIONS}}</script>
     <script src="js/compiler.js"></script>
     <script src="js/decompiler.js"></script>

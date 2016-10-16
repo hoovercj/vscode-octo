@@ -128,7 +128,7 @@ function runRom(rom) {
     emulator.init(rom);
     setRenderTarget("target");
     audioSetup();
-    document.getElementById("emulator").style.backgroundColor = emulator.quietColor;
+    document.getElementById("content").style.backgroundColor = emulator.quietColor;
     window.addEventListener("keydown", keyDown, false);
     window.addEventListener("keyup", keyUp, false);
     window.intervalHandle = setInterval(render, 1000/60);
@@ -218,7 +218,7 @@ function render() {
     }
     renderDisplay(emulator);
     if (emulator.halted) { return; }
-    document.getElementById("emulator").style.backgroundColor = (emulator.st > 0) ? emulator.buzzColor : emulator.quietColor;
+    document.getElementById("content").style.backgroundColor = (emulator.st > 0) ? emulator.buzzColor : emulator.quietColor;
 }
 
 function keyDown(event) {

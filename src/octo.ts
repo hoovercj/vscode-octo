@@ -61,10 +61,10 @@ let OctoThemes = {
         quietColor: "#000000"
     },
     "HotDogStand": {
-        backgroundColor: "#000000",
+        backgroundColor: "#FFFF00",
         fillColor: "#FF0000",
-        fillColor2: "#FFFF00",
-        blendColor: "#FFFFFF",
+        fillColor2: "#FF6600",
+        blendColor: "#662200",
         buzzColor: "#990000",
         quietColor: "#330000"
     },
