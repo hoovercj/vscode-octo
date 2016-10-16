@@ -33,6 +33,8 @@ export function activate(context: ExtensionContext) {
         if (isOctoFile(event.document)) {
             const uri = getOctoUri(event.document.uri);
             provider.update(uri);
+            // provider.openOctoTools(event.document.getText());
+            // provider.provideTextDocumentContent(uri);
         }
     });
 
@@ -239,16 +241,37 @@ class OctoDocumentContentProvider implements TextDocumentContentProvider {
         return vscode.workspace.openTextDocument(Uri.parse(uri.query).with({scheme: 'file'})).then(sourceDocument => {
             return sourceDocument.getText();
         }).then(source => {
-            return vscode.workspace.openTextDocument(getOctoPath('index.html'))
+            return this.openOctoTools(source);
+        });
+    }
+
+    private oldText: string;
+
+    public openOctoTools(source: string) {
+        return vscode.workspace.openTextDocument(getOctoPath('index.html'))
+        // return vscode.workspace.openTextDocument(getOctoPath('test.html'))
             .then(document => {
                 var options = getOctoOptions();
                 var text = document.getText().replace(/(css\/|images\/|js\/)/g, `${getOctoPath()}/$1`);
                 text = text.replace('{{SOURCE}}', source);
                 text = text.replace('{{OPTIONS}}', JSON.stringify(options));
+                
+                // if (this.oldText != text) {
+                //     console.log('Old text != new text');
+                //     console.log(text.replace(this.oldText, ''));
+                // } else {
+                //     console.log('Old text is the SAME as new text');
+                // }
+                // this.oldText = text;
+
+                // var text = 'Source:<\br>';
+                // text += source;
+                // text += '<\br>Options:</br>'
+                // text += JSON.stringify(options);
+
                 // fs.writeFile(getOctoPath('test_output.html'), text);
                 return text;
             });
-        });
     }
 
     get onDidChange(): Event<Uri> {
@@ -261,7 +284,7 @@ class OctoDocumentContentProvider implements TextDocumentContentProvider {
             setTimeout(() => {
                 this._waiting = false;
                 this._onDidChange.fire(uri);
-            }, 300);
+            }, 1000);
         }
     }
 }

@@ -60,7 +60,7 @@ function display(rom) {
 //
 ////////////////////////////////////
 
-var intervalHandle = null;
+// var intervalHandle = null;
 var emulator = new Emulator();
 
 function run() {
@@ -122,7 +122,7 @@ function compile() {
 
 function runRom(rom) {
     if (rom === null) { return; }
-    if (intervalHandle != null) { reset(); }
+    if (window.intervalHandle != null) { reset(); }
     emulator.exitVector = reset;
     emulator.importFlags = function() { return JSON.parse(localStorage.getItem("octoFlagRegisters")); }
     emulator.exportFlags = function(flags) { localStorage.setItem("octoFlagRegisters", JSON.stringify(flags)); }
@@ -133,15 +133,15 @@ function runRom(rom) {
     // document.getElementById("emulator").style.display = "inline";
     // document.getElementById("emulator").style.backgroundColor = emulator.quietColor;
     window.addEventListener("keydown", keyDown, false);
-    window.addEventListener("keyup"  , keyUp  , false);
-    intervalHandle = setInterval(render, 1000/60);
+    window.addEventListener("keyup", keyUp, false);
+    window.intervalHandle = setInterval(render, 1000/60);
 }
 
 function reset() {
     // document.getElementById("emulator").style.display = "none";
     window.removeEventListener("keydown", keyDown, false);
     window.removeEventListener("keyup"  , keyUp  , false);
-    window.clearInterval(intervalHandle);
+    clearInterval(window.intervalHandle);
     clearBreakpoint();
     stopAudio();
 }
@@ -204,7 +204,7 @@ function render() {
       || emulator.pc == null
       || emulator.metadata == null
       || emulator.metadata.breakpoints == null) {
-        clearTimeout(intervalHandle);
+        clearInterval(window.intervalHandle);
         return;
     }
 
