@@ -7,11 +7,16 @@ import * as fs from 'fs';
 import * as Octo from './octo';
 import * as cp from 'child_process';
 
+import * as OctoCompiler from './compiler'
+
 let extensionContext: ExtensionContext;
 export function activate(context: ExtensionContext) {
     extensionContext = context;
-    let provider = new OctoDocumentContentProvider();
-    let registration = vscode.workspace.registerTextDocumentContentProvider('octo', provider);
+    let documentContentProvider = new OctoDocumentContentProvider();
+    let documentContentProviderRegistration = vscode.workspace.registerTextDocumentContentProvider('octo', documentContentProvider);
+
+    let symbolProvider = new OctoSymbolProvider();
+    let symbolProviderRegistration = vscode.languages.registerDocumentSymbolProvider('octo', symbolProvider);
 
     let d1 = vscode.commands.registerCommand('octo.showTools', showTools);
     let d2 = vscode.commands.registerCommand('octo.showToolsToSide', uri => showTools(uri, true));
@@ -20,19 +25,19 @@ export function activate(context: ExtensionContext) {
     let d5 = vscode.commands.registerCommand('octo.openExample', openExample);
     let d6 = vscode.commands.registerCommand('octo.decompile', decompileSelection);
 
-    context.subscriptions.push(d1, d2, d3, d4, d5, d6, registration);
+    context.subscriptions.push(d1, d2, d3, d4, d5, d6, documentContentProviderRegistration, symbolProviderRegistration);
 
     vscode.workspace.onDidSaveTextDocument(document => {
         if (isOctoFile(document)) {
             const uri = getOctoUri(document.uri);
-            provider.update(uri);
+            documentContentProvider.update(uri);
         }
     });
 
     vscode.workspace.onDidChangeTextDocument(event => {
         if (isOctoFile(event.document)) {
             const uri = getOctoUri(event.document.uri);
-            provider.update(uri);
+            documentContentProvider.update(uri);
             // provider.openOctoTools(event.document.getText());
             // provider.provideTextDocumentContent(uri);
         }
@@ -41,10 +46,26 @@ export function activate(context: ExtensionContext) {
     vscode.workspace.onDidChangeConfiguration(() => {
         vscode.workspace.textDocuments.forEach((document) => {
             if (isOctoFile) {
-                provider.update(document.uri);
+                documentContentProvider.update(document.uri);
             }
         });
     });
+}
+
+class OctoSymbolProvider implements vscode.DocumentSymbolProvider {
+    
+    
+    public provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.SymbolInformation[] | Thenable<vscode.SymbolInformation[]> {
+        let compiler = new OctoCompiler.Compiler(document.getText());
+        compiler.Go();
+        var start = new vscode.Position(0,0);
+        var end = new vscode.Position(0,0);
+        var range = new vscode.Range(start, end);
+        return Object.keys(compiler.aliases).map(key => {
+            return new vscode.SymbolInformation(key, vscode.SymbolKind.Field, range, document.uri);
+        })
+    }
+    
 }
 
 function isOctoFile(document: vscode.TextDocument) {
@@ -255,20 +276,6 @@ class OctoDocumentContentProvider implements TextDocumentContentProvider {
                 var text = document.getText().replace(/(css\/|images\/|js\/)/g, `${getOctoPath()}/$1`);
                 text = text.replace('{{SOURCE}}', source);
                 text = text.replace('{{OPTIONS}}', JSON.stringify(options));
-                
-                // if (this.oldText != text) {
-                //     console.log('Old text != new text');
-                //     console.log(text.replace(this.oldText, ''));
-                // } else {
-                //     console.log('Old text is the SAME as new text');
-                // }
-                // this.oldText = text;
-
-                // var text = 'Source:<\br>';
-                // text += source;
-                // text += '<\br>Options:</br>'
-                // text += JSON.stringify(options);
-
                 // fs.writeFile(getOctoPath('test_output.html'), text);
                 return text;
             });
