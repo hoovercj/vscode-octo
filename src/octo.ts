@@ -1,3 +1,6 @@
+import * as vscode from 'vscode';
+import * as path from 'path';
+
 export interface OctoOptions {
     tickrate: number;
     fillColor: string;
@@ -100,4 +103,12 @@ let OctoThemes = {
         buzzColor: "#990099",
         quietColor: "#330033"
     }
+}
+
+export function getOctoUri(uri: vscode.Uri) {
+    return uri.with({ scheme: 'octo', path: uri.path + '.compiled', query: uri.path });
+}
+
+export function getFileUri(path: string) {
+    return new vscode.Uri().with({ scheme: 'file', path: path });
 }
