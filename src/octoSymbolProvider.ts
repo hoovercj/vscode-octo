@@ -24,13 +24,13 @@ export default class OctoSymbolProvider implements vscode.DocumentSymbolProvider
         let labelRegex = /(.*?):[\s+]+([\S]+)/g; //($1)$2 name
 
         let symbols: vscode.SymbolInformation[] = [];
-        symbols = symbols.concat(this.executeSymbolsRegex(aliasRegex, document));
-        symbols = symbols.concat(this.executeSymbolsRegex(constRegex, document));
-        symbols = symbols.concat(this.executeSymbolsRegex(labelRegex, document));
+        symbols = symbols.concat(this.executeSymbolsRegex(aliasRegex, document, vscode.SymbolKind.Variable));
+        symbols = symbols.concat(this.executeSymbolsRegex(constRegex, document, vscode.SymbolKind.Constant));
+        symbols = symbols.concat(this.executeSymbolsRegex(labelRegex, document, vscode.SymbolKind.Field));
         return symbols;
     }
 
-    private executeSymbolsRegex(regexp: RegExp, document: vscode.TextDocument): vscode.SymbolInformation[] {
+    private executeSymbolsRegex(regexp: RegExp, document: vscode.TextDocument, kind: vscode.SymbolKind): vscode.SymbolInformation[] {
         let symbols: vscode.SymbolInformation[] = [];
         let lines = document.getText().split('\n');
         lines.forEach((line: string, index) => {
@@ -43,7 +43,7 @@ export default class OctoSymbolProvider implements vscode.DocumentSymbolProvider
 
                 let currentSymbol: vscode.SymbolInformation = <vscode.SymbolInformation>{};
                 currentSymbol.name = match[2];
-                currentSymbol.kind = vscode.SymbolKind.Variable;
+                currentSymbol.kind = kind;
                 var location: vscode.Location = <vscode.Location>{};
                 var range: vscode.Range = <vscode.Range>{};
                 let start = match.input.indexOf(currentSymbol.name);

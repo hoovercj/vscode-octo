@@ -11,14 +11,14 @@ interface IRenderer {
 }
 
 export default class OctoTools implements vscode.TextDocumentContentProvider {
-    private static _onDidChange = new vscode.EventEmitter<vscode.Uri>();
-    private static _waiting : boolean;
-    private static _renderer : IRenderer;
-    private static _context : vscode.ExtensionContext;
+    private static onDidChange = new vscode.EventEmitter<vscode.Uri>();
+    private static waiting : boolean;
+    private static renderer : IRenderer;
+    private static context : vscode.ExtensionContext;
 
     constructor(context: vscode.ExtensionContext) {
-        OctoTools._waiting = false;
-        OctoTools._context = context;
+        OctoTools.waiting = false;
+        OctoTools.context = context;
     }
 
     public register() {
@@ -29,7 +29,7 @@ export default class OctoTools implements vscode.TextDocumentContentProvider {
         let d4 = vscode.commands.registerCommand('octo.openDocs', OctoTools.openDoc);
         let d5 = vscode.commands.registerCommand('octo.openExample', OctoTools.openExample);
         let d6 = vscode.commands.registerCommand('octo.decompile', OctoTools.decompileSelection);
-        OctoTools._context.subscriptions.push(d1, d2, d3, d4, d5, d6, documentContentProviderRegistration);
+        OctoTools.context.subscriptions.push(d1, d2, d3, d4, d5, d6, documentContentProviderRegistration);
 
         vscode.workspace.onDidSaveTextDocument(document => {
             if (OctoTools.isOctoFile(document)) {
@@ -74,16 +74,16 @@ export default class OctoTools implements vscode.TextDocumentContentProvider {
     }
 
     get onDidChange(): vscode.Event<vscode.Uri> {
-        return OctoTools._onDidChange.event;
+        return OctoTools.onDidChange.event;
     }
 
     public static update(uri: vscode.Uri) {
-        if (!OctoTools._waiting) {
-            OctoTools._waiting = true;
+        if (!OctoTools.waiting) {
+            OctoTools.waiting = true;
             setTimeout(() => {
-                OctoTools._waiting = false;
-                OctoTools._onDidChange.fire(uri);
-            }, 1000);
+                OctoTools.waiting = false;
+                OctoTools.onDidChange.fire(uri);
+            }, 300);
         }
     }
 
@@ -252,6 +252,6 @@ export default class OctoTools implements vscode.TextDocumentContentProvider {
     }
 
     private static getOctoPath(file?: string) {
-        return OctoTools._context.asAbsolutePath(path.join('octo', file || ''));
+        return OctoTools.context.asAbsolutePath(path.join('octo', file || ''));
     }
 }
