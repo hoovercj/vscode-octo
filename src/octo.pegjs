@@ -1,415 +1,259 @@
-// TODO: replace most 'ws' with '_' because newline and comments are also acceptable separators
-// TODO: add :next
 program
- = (_ / directive / blockStatement / routine)*
+ = body:statement* { return { type: "Program", body: body, location: location() }; }
 
-directive
- = constStatement / aliasStatement
+statement
+ = keywordExpression / assignmentExpression / number / ifStatement / loopStatement
+ / label / region / directive / _
 
-routine
- = labelStatement blockStatement*
+region
+ = ":" _ id:label _ body:statement* { return { type: "Region", id: id, body: body, location: location() }; }
 
-blockStatement
- = returnStatement / clearStatement / bcdStatement / saveStatement 
- / loadStatement / spriteStatement / jumpStatement / jumpZeroStatement
- / resStatement / exitStatement / scrollStatement / flagsStatement
- / saveRangeStatement / loadRangeStatement / planeStatement / audioStatement
- / assignment / number / ifThenStatement / ifBeginBlock / label / _
+// expressionStatement
 
 // CONTROL FLOW
+ifStatement
+ = ifKeyword _ test:testExpression _ thenKeyword _ consequent:statement* { return { type: "IfStatement", test: test, consequent: consequent, location: location() }; }
+ / ifKeyword _ test:testExpression _ beginKeyword _ consequent:statement* endKeyword { return { type: "IfStatement", test: test, consequent: consequent, location: location() }; }
+ / ifKeyword _ test:testExpression _ beginKeyword _ consequent:statement* elseKeyword _ alternate:statement* endKeyword { return { type: "IfStatement", test: test, consequent: consequent, alternate: alternate, location: location() }; }
 
+loopStatement
+ = loopKeyword _ body:(statement / whileStatement)* againKeyword { return { type: "LoopStatement", body: body, location: location() }; }
 
-ifThenStatement
- = ifKeyword _ conditional _ thenKeyword _ blockStatement
-
-ifBeginBlock
- = ifKeyword _ conditional _ beginKeyword _ blockStatement* (elseBlock / endKeyword)
-
-elseBlock
- = elseKeyword _ blockStatement* endKeyword
-
-loopBlock
- = loopKeyword _ (blockStatement / whileStatement)* (ifKeyword _ conditional _ thenKeyword)? againKeyword
-
+// SUB_DEF
  whileStatement
-  = whileKeyword _ conditional
+  = whileKeyword _ test:testExpression { return { type: "WhileStatement", test: test, location: location() }; }
 
-ifKeyword
- = "if" { return { type: "ifKeyword", value: "if", location: location() }; }
+testExpression
+ = one:aliasable _ op:comparisonOperator _ two:(number / aliasable)  { return { type: "testExpression", one: one, op: op, two: two, location: location() }; }
+ / one:aliasable _ op:(keyKeyword / "-" keyKeyword) { return { type: "testExpression", one: one, op: op, location: location() }; }
 
-thenKeyword
- = "then" { return { type: "thenKeyword", value: "then", location: location() }; }
-
-elseKeyword
- = "else" { return { type: "elseKeyword", value: "else", location: location() }; }
-
-beginKeyword
- = "begin" { return { type: "beginKeyword", value: "begin", location: location() }; }
-
-endKeyword
- = "end" { return { type: "endKeyword", value: "end", location: location() }; }
-
-loopKeyword
- = "loop" { return { type: "loopKeyword", value: "loop", location: location() }; }
-
-againKeyword
- = "again" { return { type: "againKeyword", value: "again", location: location() }; }
-
-whileKeyword
- = "while" { return { type: "whileKeyword", value: "while", location: location() }; }
-
-conditional
- = keyConditional / notKeyConditional / equalityConditional / inequalityConditional
-/ lessThanConditional / greaterThanConditional / lessThanOrEqualConditional / greaterThanOrEqualConditional
-
-keyConditional
- = destination:(aliasable) ws key:keyKeyword { return { type: "keyConditional", location:location(), value: [destination, key]}; }
-
-notKeyConditional
- = destination:(aliasable) ws key:notKeyKeyword { return { type: "notKeyConditional", location:location(), value: [destination, key]}; }
-
-equalityConditional
- = destination:(aliasable) ws operator:equalityOperator ws value:(number / aliasable) { return { type: "equalityConditional", location: location(), value: [destination, operator, value] }; }
-
-equalityOperator
- = "==" { return { type: "equalityOperator", value: "==", location: location() }; }
-
-inequalityConditional
- = register:(aliasable) ws operator:inequalityOperator ws value:(number / aliasable) { return { type: "inequalityConditional", location: location(), value: [register, operator, value] }; }
-
-inequalityOperator
- = "!=" { return { type: "inequalityOperator", value: "!=", location: location() }; }
-
-lessThanConditional
- = register:(aliasable) ws operator:lessThanOperator ws value:(number / aliasable) { return { type: "lessThanConditional", location: location(), value: [register, operator, value] }; }
-
-lessThanOperator
- = "<" { return { type: "lessThanOperator", value: "<", location: location() }; }
-
-greaterThanConditional
- = register:(aliasable) ws operator:greaterThanOperator ws value:(number / aliasable) { return { type: "greaterThanConditional", location: location(), value: [register, operator, value] }; }
-
-greaterThanOperator
- = ">" { return { type: "greaterThanOperator", value: ">", location: location() }; }
-
-lessThanOrEqualConditional
- = register:(aliasable) ws operator:lessThanOrEqualOperator ws value:(number / aliasable) { return { type: "lessThanOrEqualConditional", location: location(), value: [register, operator, value] }; }
-
-lessThanOrEqualOperator
- = "<=" { return { type: "lessThanOrEqualOperator", value: "<=", location: location() }; }
-
-greaterThanOrEqualConditional
- = register:(aliasable) ws operator:greaterThanOrEqualOperator ws value:(number / aliasable) { return { type: "greaterThanOrEqualConditional", location: location(), value: [register, operator, value] }; }
-
-greaterThanOrEqualOperator
- = ">=" { return { type: "greaterThanOrEqualOperator", value: "<=", location: location() }; }
+comparisonOperator
+ = op:("==" / "!=" / "<" / ">" / "<=" / ">=")
 
 // ASSIGNMENT
-assignment
- = directAssignment / addAssignment / minusAssignment 
-/ bitwiseAssignment / shiftAssignment
+assignmentExpression
+ // vx operations
+ = one:aliasable _ op:(">>=" / "<<=" / "|=" / "&=" / "^=" / "-=" / "=-") _ two:(aliasable) { return { type: "AssignmentExpression", one: one, op: op, two: two, location: location() }; }
+ / one:aliasable _ op:"+=" _ two:(number / aliasable) { return { type: "AssignmentExpression", one: one, op: op, two: two, location: location() }; }
+ / one:aliasable _ op:":=" _ two:(aliasable / delayKeyword / randomExpression / keyKeyword)
+ // i operations
+ / one:iRegister _ op:"+=" _ two:aliasable { return { type: "AssignmentExpression", one: one, op: op, two: two, location: location() }; }
+ / one:iRegister _ op:":=" _ two:(address / addressExpression) { return { type: "AssignmentExpression", one: one, op: op, two: two, location: location() }; }
+ // buzzer/delay operations
+ / one:(buzzerKeyword / delayKeyword) _ op:":=" _ two:aliasable { return { type: "AssignmentExpression", one: one, op: op, two: two, location: location() }; }
 
-// SHIFT ASSIGNMENTS
-shiftAssignment
- = dest:(aliasable) ws op:shiftAssignmentOperator ws source:(aliasable) { return { type: "shiftAssignment", value: [dest, op, source], location: location() }; }
-
-shiftAssignmentOperator
- = operator:(">>=" / "<<=") { return { type: "shiftAssignmentOperator", value: operator, location: location() }; }
-
-// BITWISE ASSIGNMENTS
-bitwiseAssignment
- = dest:(aliasable) ws op:bitwiseAssignmentOperator ws source:(aliasable) { return { type: "bitwiseAssignment", value: [dest, op, source], location: location() }; }
-
-bitwiseAssignmentOperator
- = operator:("|=" / "&=" / "^=") { return { type: "bitwiseAssignmentOperator", value: operator, location: location() }; }
-
-// MINUS ASSIGNMENTS
-minusAssignment
- = dest:(aliasable) ws op:minusAssignmentOperator ws source:(aliasable) { return { type: "minusAssignment", value: [dest, op, source], location: location() }; }
-
-minusAssignmentOperator
- = operator:("-=" / "=-") { return { type: "minusAssignmentOperator", value: operator, location: location() }; }
-
-// ADD ASSIGNMENTS
-addAssignment
- = dest:(aliasable) ws op:addAssignmentOperator ws source:(number / aliasable) { return { type: "addAssignment", value: [dest, op, source], location: location() }; }
- / dest:iRegister ws op:addAssignmentOperator ws source:(aliasable) { return { type: "addAssignment", value: [dest, op, source], location: location() }; }
-
-addAssignmentOperator
- = operator:("+=") { return { type: "addAssignmentOperator", value: operator, location: location() }; }
-
-// DIRECT ASSIGNMENTS
-// TODO: Fix this. Allowed i register assignments are different from vregister assignments
-directAssignment
- = dest:directAssignmentDestination ws op:directAssignmentOperator ws source:directAssignmentSource { return { type: "directAssignment", value: [dest, op, source], location: location() }; }
-
-directAssignmentSource 
- = source:(aliasable / delay / number / hexExpression / bigHexExpression / longExpression / randomExpression) { return { type: "directAssignmentSource", value: source, location: location() }; }
-
-directAssignmentDestination
- = dest:(aliasable / iRegister / buzzer / delay) { return { type: "directAssignmentDestination", value: dest, location: location() }; }
-
-directAssignmentOperator
- = operator:(":=") { return { type: "directAssignmentOperator", value: operator, location: location() }; }
-
-// OPERAND EXPRESSIONS
 randomExpression
- = keyword:randomKeyword ws value:number { return { type: "randomExpression", location: location(), value: [keyword, value]}}
+ = op:randomKeyword _ one:address { return { type: "randomExpression", op: op, one: one, location: location(), }; }
 
-hexExpression
- = keyword:hexKeyword ws value:number { return { type: "hexExpression", location: location(), value: [keyword, value]}}
+addressExpression
+ = op:(hexKeyword / bigHexKeyword / longKeyword) _ one:address { return { type: "addressExpression", op: op, one: one, location: location() }; }
 
-// -- superchip expression
-bigHexExpression
- = keyword:bigHexKeyword ws value:number { return { type: "bigHexExpression", location: location(), value: [keyword, value]}}
+keywordExpression
+ = op:(audioKeyword / scrollLeftKeyword / scrollRightKeyword / returnKeyword / clearKeyword
+       / breakpointKeyword / hiresKeyword / loresKeyword / exitKeyword) { return { type: "KeywordExpression",op: op, location: location(),  }; }
 
-// -- xo expression
-longExpression
- = keyword:longKeyword ws value:number { return { type: "longExpression", location: location(), value: [keyword, value] }; }
+// UNARY EXPRESSION
+unaryExpression
+ = op:(randomKeyword / hexKeyword / bigHexKeyword / bcdKeyword / saveKeyword / loadKeyword) _ one:aliasable { return { type: "Unaryexpression", op: op, one: one, location: location(), }; }
+ / op:(longKeyword / orgKeyword / jumpKeyword / jumpZeroKeyword / saveKeyword
+       / loadKeyword / scrollUpKeyword / scrollDownKeyword / planeKeyword) _ one:address { return { type: "Unaryexpression", op: op, one: one, location: location(), }; }
 
-// STATEMENTS
-statement
- = octoStatement / superchipStatement / xoStatement
-
-octoStatement
- = returnStatement / clearStatement / bcdStatement / saveStatement 
- / loadStatement / spriteStatement / jumpStatement / jumpZeroStatement
- / aliasStatement / constStatement
-
-// -- octo statements
-labelStatement
- = keyword:colonKeyword ws label:label { return { type: "labelStatement", location: location(), value: [keyword, label]}; }
-
-constStatement
- = keyword:constKeyword ws label:label ws value:number { return { type: "constStatement", location: location(), value: [keyword, label, value]}}
-
-aliasStatement
- = keyword:aliasKeyword ws label:label ws register:(aliasable) { return { type: "aliasStatement", location: location(), value: [keyword, label, register]}}
-
-breakpointStatement
- = keyword:breakpointKeyword { return { type: "breakpointStatement", location: location(), value: [keyword] }; }
-
-returnStatement
- = keyword:returnKeyword { return { type: "returnStatement", location: location(), value: [keyword] }; }
-
-clearStatement
- = keyword:clearKeyword { return { type: "clearStatement", location: location(), value: [keyword] }; }
-
-bcdStatement
- = keyword:bcdKeyword ws value:aliasable { return { type: "bcdStatement", location: location(), value: [keyword, value] }; }
-
-saveStatement
- = keyword:saveKeyword ws value:aliasable { return { type: "saveStatement", location: location(), value: [keyword, value] }; }
-
-loadStatement
- = keyword:loadKeyword ws value:aliasable { return { type: "loadStatement", location: location(), value: [keyword, value] }; }
-
-spriteStatement
- = keyword:spriteKeyword ws x:aliasable ws y:aliasable ws height:address { return { type: "spriteStatement", location: location(), value: [keyword, x, y, height] }; }
-
-jumpStatement
- = keyword:jumpKeyword ws value:address { return { type: "jumpStatement", location: location(), value: [keyword, value] }; }
-
-jumpZeroStatement
- = keyword:jumpZeroKeyword ws value:address { return { type: "jumpZeroStatement", location: location(), value: [keyword, value] }; }
-
-// -- superchip statements
-superchipStatement
- = resStatement / exitStatement / scrollVerticalStatement / flagsStatement
-
-resStatement
- = keyword:(hiresKeyword / loresKeyword) { return { type: "resStatement", location: location(), value: [keyword] }; }
-
-exitStatement
- = keyword:(exitKeyword) { return { type: "exitStatement", location: location(), value: [keyword] }; }
-
-scrollStatement
- = scrollVerticalStatement / scrollHorizontalStatement
-
-// TODO: scroll up/down can be 0-15
-scrollVerticalStatement
- = keyword:(scrollUpKeyword / scrollDownKeyword) ws value:number { return { type: "scrollVerticalStatement", location: location(), value: [keyword, value] }; }
-
-scrollHorizontalStatement
- = keyword:(scrollLeftKeyword / scrollRightKeyword) { return { type:"scrollHorizontalStatement", location: location, value: [keyword]}}
-
-flagsStatement
- = keyword:(saveKeyword / loadKeyword) ws value:[0-7] { return { type: "flagsStatement", location: location(), value: [keyword, value] }; }
-
-// -- xo statements
-xoStatement
- = saveRangeStatement / loadRangeStatement / planeStatement / audioStatement
-
-saveRangeStatement
- = keyword:saveKeyword ws start:aliasable ws "-" ws end:aliasable { return { type: "saveRangeStatement", location: location(), value: [keyword, start, end] }; }
-
-loadRangeStatement
- = keyword:loadKeyword ws start:aliasable ws "-" ws end:aliasable { return { type: "loadRangeStatement", location: location(), value: [keyword, start, end] }; }
-
-planeStatement
- = keyword:planeKeyword ws value:[0-3] { return { type: "planeStatement", location: location(), value: [keyword, value] }; }
-
-audioStatement
- = keyword:audioKeyword { return { type: "audioStatement", location: location(), value: [keyword] }; }
+// KEYWORD STATEMENTS
+directive
+ = op:constKeyword _ one:label _ two:number { return { type: "Directive", op: op, one: one, two: two, location: location() }; }
+ / op:aliasKeyword _ one:label _ two:aliasable { return {type: "Directive", op: op, one: one, two: two, location: location() }; }
+ / op:unpackKeyword _ one:address _ two:label { return {type: "Directive", op: op, one: one, two: two, location: location() }; }
+ / op:(saveKeyword / loadKeyword) _ one:aliasable _ "-" _ two:aliasable { return {type: "Directive", op: op, one: one, two: two, location: location() }; }
+ / op:nextKeyword _ one:label _ two:statement { return {type: "Directive", op: op, one: one, two: two, location: location() }; }
+ / op:spriteKeyword _ one:aliasable _ two:aliasable _ three:address { return {type: "Directive", op: op, one: one, two: two, three: three, location: location() }; }
 
 // NEAR TERMINAL SYMBOLS (only small wrappers, value must be a primative)
+address
+ = number / label
+
 number
- = number:(binary / hex / decimal) { return { type: "number", value: number, location: location() }; }
+ = number:(binary / hex / decimal) //{ return { type: "number", value: number, location: location() }; }
 
 binary
- = number:("0b" decimal) { return { type: "hex", value: number.join(''), location: location() }; }
+ = "0b" decimal
 
 hex
- = number:("0x" decimal) { return { type: "hex", value: number.join(''), location: location() }; }
+ = "0x" decimal
 
-label // TODO: check if this is correct
-//  = pre:nonAlphaLabelCharacter* mid:[a-z]i+ post:nonAlphaLabelCharacter* { return { type: "label", value: pre.join('') + mid.join('') + post.join(''), location: location() }; }
- = $(word !reservedWord)
+decimal
+ = value:[0-9]+ { return value.join(''); }
+
+aliasable
+ = vRegister / label
+
+vRegister
+ = register:("v"[0-9a-fA-F]) { return { type: "vRegister", value: register.join('') }; }
+
+iRegister
+ = register:("i")
+
+label // TODO: verify that this is correct
+ = value:$(word !reservedWord) //{ return { type: "label", value: value, location: location() }; }
 
 word
-= [a-z0-9-_?]i+
+= value:[a-z0-9-_?]i+ { return value.join(''); }
 
 reservedWord
- = keyword / number / vRegister / iRegister // operators
+ = keyword / number / vRegister / iRegister // operators - skip because they aren't valid labels
 
 keyword
  = colonKeyword / returnKeyword / clearKeyword / bcdKeyword
  / saveKeyword / loadKeyword / spriteKeyword / jumpKeyword
  / jumpZeroKeyword / constKeyword / aliasKeyword / breakpointKeyword
  / hexKeyword / keyKeyword / notKeyKeyword / colonKeyword
- / randomKeyword / delay / buzzer / scrollKeyword / hiresKeyword
+ / randomKeyword / delayKeyword / buzzerKeyword / scrollKeyword / hiresKeyword
  / loresKeyword / bigHexKeyword / exitKeyword / saveflagsKeyword
  / loadflagsKeyword / audioKeyword / planeKeyword / longKeyword
  / ifKeyword / thenKeyword / elseKeyword / beginKeyword / endKeyword
-
-// TERMINAL SYMBOLS
-nonAlphaLabelCharacter
- = number / [-_]
-
-decimal
- = number:([0-9]+) { return { type: "decimal", value: number.join(''), location: location() }; }
+ / orgKeyword / nextKeyword
 
 // --- octo keywords
 colonKeyword
- = keyword:":" { return { type: "colonKeyword", value: keyword, location: location() }; }
+ = ":"
 
 returnKeyword
- = keyword:("return" / ";") { return { type: "returnKeyword", value: keyword, location: location() }; }
+ = "return" / ";"
 
 clearKeyword
- = "clear" { return { type: "clearKeyword", value: "clear", location: location() }; }
+ = "clear"
 
 bcdKeyword
- = "bcd" { return { type: "bcdKeyword", value: "bcd", location: location() }; }
+ = "bcd"
 
 saveKeyword
- = "save" { return { type: "saveKeyword", value: "save", location: location() }; }
+ = "save"
 
 loadKeyword
- = "load" { return { type: "loadKeyword", value: "load", location: location() }; }
+ = "load"
 
 spriteKeyword
- = "sprite" { return { type: "spriteKeyword", value: "sprite", location: location() }; }
+ = "sprite"
 
 jumpKeyword
- = "jump" { return { type: "jumpKeyword", value: "jump", location: location() }; }
+ = "jump"
 
 jumpZeroKeyword
- = "jump0" { return { type: "jumpZeroKeyword", value: "jump0", location: location() }; }
+ = "jump0"
 
 constKeyword
- = ":const" { return { type: "constKeyword", value: "const", location: location() }; }
+ = ":const"
 
 aliasKeyword
- = ":alias" { return { type: "aliasKeyword", value: ":alias", location: location() }; }
+ = ":alias"
 
 breakpointKeyword
- = ":breakpoint" { return { type: "breakpointKeyword", value: ":breakpoint", location: location() }; }
+ = ":breakpoint"
+
+unpackKeyword
+ = ":unpack"
+
+orgKeyword
+ = ":org"
+
+nextKeyword
+ = ":next"
 
 hexKeyword
- = "hex" { return { type: "hexKeyword", value: "hex", location: location() }; }
+ = "hex"
 
 randomKeyword
- = "random" { return { type: "randomKeyword", value: "random", location: location() }; }
+ = "random"
 
 keyKeyword
- = "key" { return { type: "keyKeyword", value: "key", location: location() }; }
+ = "key"
 
 notKeyKeyword
- = "-key" { return { type: "notKeyKeyword", value: "-key", location: location() }; }
+ = "-key"
 
-delay
- = "delay" { return { type: "delay", value: "delay", location: location() }; }
+delayKeyword
+ = "delay"
 
-buzzer
- = "buzzer" { return { type: "buzzer", value: "delay", location: location() }; }
+buzzerKeyword
+ = "buzzer"
 
 scrollKeyword
  = scrollDownKeyword / scrollUpKeyword / scrollLeftKeyword / scrollRightKeyword
 
+// -- conditional keywords
+ifKeyword
+ = "if"
+
+thenKeyword
+ = "then"
+
+elseKeyword
+ = "else"
+
+beginKeyword
+ = "begin"
+
+endKeyword
+ = "end"
+
+loopKeyword
+ = "loop"
+
+againKeyword
+ = "again"
+
+whileKeyword
+ = "while"
+
 // -- superchip keywords
 hiresKeyword
- = "hires" { return { type: "hiresKeyword", value: "hires", location: location() }; }
+ = "hires"
 
 loresKeyword
- = "lores" { return { type: "loresKeyword", value: "lores", location: location() }; }
+ = "lores"
 
 scrollDownKeyword
- = "scroll-down" { return { type: "scrollDownKeyword", value: "scroll-down", location: location() }; }
+ = "scroll-down"
 
 scrollLeftKeyword
- = "scroll-left" { return { type: "scrollLeftKeyword", value: "scroll-left", location: location() }; }
+ = "scroll-left"
 
 scrollRightKeyword
- = "scroll-right" { return { type: "scrollRightKeyword", value: "scroll-right", location: location() }; }
+ = "scroll-right"
 
 bigHexKeyword
- = "bighex" { return { type: "bigHexKeyword", value: "bigHex", location: location() }; }
+ = "bighex"
 
 exitKeyword
- = "exit" { return { type: "exitKeyword", value: "exit", location: location() }; }
+ = "exit"
 
 saveflagsKeyword
- = "saveflags" { return { type: "saveflagsKeyword", value: "saveflags", location: location() }; }
+ = "saveflags"
 
 loadflagsKeyword
- = "loadflags" { return { type: "loadflagsKeyword", value: "loadflags", location: location() }; }
+ = "loadflags"
 
 // -- xo keywords
 scrollUpKeyword
- = "scroll-up" { return { type: "scrollUpKeyword", value: "scroll-up", location: location() }; }
+ = "scroll-up"
 
 planeKeyword
- = "plane" { return { type: "planeKeyword", value: "plane", location: location() }; }
+ = "plane"
 
 audioKeyword
- = "audio" { return { type: "audioKeyword", value: "audio", location: location() }; }
+ = "audio"
 
 longKeyword
- = "long" { return { type: "longKeyword", value: "long", location: location() }; }
+ = "long"
 
 // misc
-
-address
- = number / label
-
-iRegister
- = register:("i") { return { type: "iRegister", value: register, location: location() }; }
-
-aliasable
- = label / vRegister
-
-vRegister
- = register:("v"[0-9a-fA-F]) { return { type: "vRegister", value: register.join(''), location: location() }; }
+_ "trivia" // - TODO: decide if I should pass along like roslyn does to regenerate source from AST
+ = trivia:(lb / ws / comment)+ { return { type: "trivia", value: trivia.join(''), location: location() }; }
 
 comment
  = start:"#" rest:([^\n])* { return start + rest.join(''); }
 
 ws "whitespace"
- = whitepsace:[ \t]+
-
-_ // trivia - TODO: decide if I should pass along like roslyn does to regenerate source from AST
- = trivia:(lb / ws / comment)+ { return { type: "trivia", value: trivia, location: location() }; }
+ = whitespace:[ \t]+ { return whitespace.join(''); }
 
 lb
  = "\n"
