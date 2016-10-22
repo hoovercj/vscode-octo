@@ -7,7 +7,8 @@
             "es5"
         ],
         "sourceMap": true,
-        "rootDir": "."
+        "rootDir": ".",
+        "allowJs": true
     },
     "exclude": [
         "node_modules",

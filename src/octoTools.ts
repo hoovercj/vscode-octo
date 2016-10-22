@@ -30,28 +30,6 @@ export default class OctoTools implements vscode.TextDocumentContentProvider {
         let d5 = vscode.commands.registerCommand('octo.openExample', OctoTools.openExample);
         let d6 = vscode.commands.registerCommand('octo.decompile', OctoTools.decompileSelection);
         OctoTools.context.subscriptions.push(d1, d2, d3, d4, d5, d6, documentContentProviderRegistration);
-
-        vscode.workspace.onDidSaveTextDocument(document => {
-            if (OctoTools.isOctoFile(document)) {
-                const uri = Octo.getOctoUri(document.uri);
-                OctoTools.update(uri);
-            }
-        });
-
-        vscode.workspace.onDidChangeTextDocument(event => {
-            if (OctoTools.isOctoFile(event.document)) {
-                const uri = Octo.getOctoUri(event.document.uri);
-                OctoTools.update(uri);
-            }
-        });
-
-        vscode.workspace.onDidChangeConfiguration(() => {
-            vscode.workspace.textDocuments.forEach((document) => {
-                if (OctoTools.isOctoFile) {
-                    OctoTools.update(document.uri);
-                }
-            });
-        });
     }
 
     public provideTextDocumentContent(uri: vscode.Uri): Thenable<string> {
