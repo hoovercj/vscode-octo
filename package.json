@@ -49,8 +49,7 @@
         "languages": [{
             "id": "octo",
             "aliases": ["Octo", "octo"],
-            "extensions": [".8o"],
-            "configuration": "./language-configuration.json"
+            "extensions": [".8o"]
         }],
         "grammars": [{
             "language": "octo",

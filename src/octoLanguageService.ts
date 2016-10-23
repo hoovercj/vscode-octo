@@ -13,7 +13,7 @@ interface LanguageServiceInfo {
     symbols: vscode.SymbolInformation[]
 }
 
-export default class OctoLanguageService implements vscode.DocumentSymbolProvider {
+export default class OctoLanguageService implements vscode.DocumentSymbolProvider, vscode.DefinitionProvider {
     private context: vscode.ExtensionContext;
 
     private documentInfo: {[uri:string]:LanguageServiceInfo} = {};
@@ -23,8 +23,9 @@ export default class OctoLanguageService implements vscode.DocumentSymbolProvide
     }
 
     public register() {
+        let symbolDefinitionRegistration = vscode.languages.registerDefinitionProvider('octo', this);
         let symbolProviderRegistration = vscode.languages.registerDocumentSymbolProvider('octo', this);
-        this.context.subscriptions.push(symbolProviderRegistration);
+        this.context.subscriptions.push(symbolProviderRegistration, symbolDefinitionRegistration);
     }
 
     public open(document: vscode.TextDocument): void {
@@ -67,6 +68,22 @@ export default class OctoLanguageService implements vscode.DocumentSymbolProvide
         return this.getSymbols(document.uri.toString());
     }
 
+    public provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.Definition | Thenable<vscode.Definition> {
+        console.log('ProvideDefinition');
+        let range = document.getWordRangeAtPosition(position);
+        let token = document.getText(range);
+        
+        let symbols = this.getSymbols(document.uri.toString());
+        let definition = null;
+        symbols.forEach(symbol => {
+            if (symbol.name == token) {
+                definition = symbol.location;
+                return;
+            }
+        });
+        return definition;
+    }
+
     public getSymbols(uri: string) {
         return this.documentInfo[uri].symbols;
     }
@@ -98,8 +115,8 @@ export default class OctoLanguageService implements vscode.DocumentSymbolProvide
             let location = <vscode.Location> { 
                 uri: uri,
                 range: { 
-                    start: { character: declaration.location.start.column, line: declaration.location.start.line },
-                    end: { character: declaration.location.end.column, line: declaration.location.end.line }
+                    start: { character: declaration.location.start.column - 1, line: declaration.location.start.line - 1 },
+                    end: { character: declaration.location.end.column - 1, line: declaration.location.end.line - 1 }
                 }
             };
 

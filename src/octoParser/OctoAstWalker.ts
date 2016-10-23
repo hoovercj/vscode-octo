@@ -3,7 +3,7 @@ import { Node, NodeType, Program, Statement, Expression, IfStatement,
     Location, Position } from './OctoAst';
 
 // Included in this architecture:
-//  Symbol provider - aliases/consts/labels[name]: location
+//  Symbol provider - aliases/consts/labels[name]: location -- DONE
 //  Go to definition - aliases/consts/labels[name]: location
 //  Find all references - usages[name]: [location]
 // TODO:

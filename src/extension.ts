@@ -14,11 +14,17 @@ import OctoTools from './octoTools';
 let extensionContext: ExtensionContext;
 export function activate(context: ExtensionContext) {
     extensionContext = context;
+
+    vscode.languages.setLanguageConfiguration('octo', {
+        comments: {
+            lineComment: "#"
+        },
+        wordPattern: /([\S]+)/g
+    });
+
     let octoTools = new OctoTools(context);
     octoTools.register();
-    
-    // let symbolProvider = new OctoSymbolProvider(context);
-    // symbolProvider.register();
+
     let languageService = new OctoLanguageService(context);
     languageService.register();
 
