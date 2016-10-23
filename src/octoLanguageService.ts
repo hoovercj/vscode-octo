@@ -18,15 +18,20 @@ export default class OctoLanguageService implements vscode.DocumentSymbolProvide
 
     private documentInfo: {[uri:string]:LanguageServiceInfo} = {};
 
+    private diagnosticCollection: vscode.DiagnosticCollection;
+
     constructor(context: vscode.ExtensionContext) {
         this.context = context;
     }
 
     public register() {
+        this.diagnosticCollection = vscode.languages.createDiagnosticCollection();
         let symbolDefinitionRegistration = vscode.languages.registerDefinitionProvider('octo', this);
         let symbolProviderRegistration = vscode.languages.registerDocumentSymbolProvider('octo', this);
         let referencesProviderRegistration = vscode.languages.registerReferenceProvider('octo', this);
-        this.context.subscriptions.push(symbolProviderRegistration, symbolDefinitionRegistration, referencesProviderRegistration);
+
+        // Do i need to manually call clear on this.diagnosticCollection?
+        this.context.subscriptions.push(this.diagnosticCollection, symbolProviderRegistration, symbolDefinitionRegistration, referencesProviderRegistration);
     }
 
     public provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.SymbolInformation[] | Thenable<vscode.SymbolInformation[]> {
@@ -81,6 +86,7 @@ export default class OctoLanguageService implements vscode.DocumentSymbolProvide
     }
 
     public update(document: vscode.TextDocument): void {
+        this.diagnosticCollection.set(document.uri, []);
         let stringUri = document.uri.toString();
         if (!this.documentInfo[stringUri]) {
             this.documentInfo[stringUri] = {
@@ -98,10 +104,22 @@ export default class OctoLanguageService implements vscode.DocumentSymbolProvide
             this.documentInfo[stringUri].walker.walkProgram(newTree);
             this.buildSymbolsList(document);
             this.documentInfo[stringUri].lastValidTree = newTree;
-        } catch (error) {
+        } catch (error: { message: string, location: OctoAst.Location }) {
             this.documentInfo[stringUri].error = error;
-            console.error(error);
-            console.error(JSON.stringify(error));
+            // debugger
+            let location = this.walkerLocationToVscodeLocation(document.uri, error.location);
+            let range = location.range;
+            range.end.character = Number.MAX_VALUE;
+
+            let diagnostic = <vscode.Diagnostic> {
+                message: error.message,
+                range: range,
+                source: "Octo Parser",
+                severity: vscode.DiagnosticSeverity.Error
+            }
+
+            this.diagnosticCollection.set(document.uri, [diagnostic]);
+            // console.error(error);
         }
     }
 

@@ -4,21 +4,21 @@ program
  = body:statement* { return { type: "Program", body: body, location: location() }; }
 
 statement
- = loopStatement / ifStatement / unaryExpression / assignmentExpression 
- / declaration / directive / label / keywordExpression / number / _
+ = loopStatement / ifStatement / unaryExpression / assignmentExpression / addressExpression
+ / declaration / directive / label / keywordExpression / number / randomExpression / _
 
-declaration "declaraction"
+declaration "declaration"
  = op:constKeyword _ one:label _ two:number { return { type: "Declaration", op: op, one: one, two: two, location: location() }; }
  / op:aliasKeyword _ one:label _ two:aliasable { return {type: "Declaration", op: op, one: one, two: two, location: location() }; }
  / op:":" _ one:label _ two:statement* returnKeyword* { return { type: "Declaration", op: op, one: one, two: two, location: location() }; }
 
 // CONTROL FLOW
-ifStatement "if statement"
+ifStatement "control statement"
  = ifKeyword _ test:testExpression _ beginKeyword _ consequent:(statement / returnKeyword)* elseKeyword _ alternate:(statement / returnKeyword)* endKeyword { return { type: "IfStatement", test: test, consequent: consequent, alternate: alternate, location: location() }; }
  / ifKeyword _ test:testExpression _ beginKeyword _ consequent:(statement / returnKeyword)* endKeyword { return { type: "IfStatement", test: test, consequent: consequent, location: location() }; }
  / ifKeyword _ test:testExpression _ thenKeyword _ consequent:(statement / returnKeyword)* { return { type: "IfStatement", test: test, consequent: consequent, location: location() }; }
 
-loopStatement "loop statement"
+loopStatement "control statement"
  = loopKeyword _ body:(whileStatement / statement / returnKeyword)* againKeyword { return { type: "LoopStatement", body: body, location: location() }; }
 
 // SUB_DEF
@@ -29,7 +29,7 @@ testExpression "test expression"
  = one:aliasable _ op:comparisonOperator _ two:(number / aliasable)  { return { type: "TestExpression", one: one, op: op, two: two, location: location() }; }
  / one:aliasable _ op:(keyKeyword / "-" keyKeyword) { return { type: "TestExpression", one: one, op: op, location: location() }; }
 
-operator "operator"
+operator
  = comparisonOperator / assignmentOperator
 
 comparisonOperator "comparison operator"
@@ -50,44 +50,44 @@ assignmentExpression "assignment expression"
  // buzzer/delay operations
  / one:(buzzerKeyword / delayKeyword) _ op:":=" _ two:aliasable { return { type: "AssignmentExpression", op: op, one: one, two: two, location: location() }; }
 
-randomExpression
- = op:randomKeyword _ one:address { return { type: "RandomExpression", op: op, one: one, location: location(), }; }
-
-addressExpression
+addressExpression "address"
  = op:longKeyword _ one:address { return { type: "AddressExpression", op: op, one: one, location: location() }; }
  / op:(hexKeyword / bigHexKeyword) _ one:aliasable { return { type: "AddressExpression", op: op, one: one, location: location() }; }
 
-keywordExpression
+randomExpression "random"
+ = op:randomKeyword _ one:address { return { type: "RandomExpression", op: op, one: one, location: location(), }; }
+
+keywordExpression "instruction"
  = op:(audioKeyword / scrollLeftKeyword / scrollRightKeyword / clearKeyword
        / breakpointKeyword / hiresKeyword / loresKeyword / exitKeyword) { return { type: "KeywordExpression",op: op, location: location() }; }
 
 // UNARY EXPRESSION
-unaryExpression
- = op:(randomKeyword / hexKeyword / bigHexKeyword / bcdKeyword / saveKeyword / loadKeyword) _ one:aliasable { return { type: "UnaryExpression", op: op, one: one, location: location() }; }
- / op:(longKeyword / orgKeyword / jumpKeyword / jumpZeroKeyword / saveKeyword
+unaryExpression "instruction"
+ = op:(bcdKeyword / saveKeyword / loadKeyword) _ one:aliasable { return { type: "UnaryExpression", op: op, one: one, location: location() }; }
+ / op:(orgKeyword / jumpKeyword / jumpZeroKeyword / saveKeyword
        / loadKeyword / scrollUpKeyword / scrollDownKeyword / planeKeyword) _ one:address { return { type: "UnaryExpression", op: op, one: one, location: location() }; }
 
 // KEYWORD STATEMENTS
-directive "directive"
+directive "instruction" // ":next, :unpack, save/load (range), sprite"
  = op:unpackKeyword _ one:address _ two:label { return {type: "Directive", op: op, one: one, two: two, location: location() }; }
  / op:(saveKeyword / loadKeyword) _ one:aliasable _ "-" _ two:aliasable { return {type: "Directive", op: op, one: one, two: two, location: location() }; }
  / op:nextKeyword _ one:label _ two:statement { return {type: "Directive", op: op, one: one, two: two, location: location() }; }
  / op:spriteKeyword _ one:aliasable _ two:aliasable _ three:address { return {type: "Directive", op: op, one: one, two: two, three: three, location: location() }; }
 
 // NEAR TERMINAL SYMBOLS (only small wrappers, value must be a primative)
-address
+address "address"
  = number / label
 
 number "number"
  = number:(binary / hex / decimal) { return { type: "Number", value: number, location: location() }; }
 
-binary
+binary "binary number"
  = prefix:"0b" value:[01]+ { return prefix + value.join(''); }
 
-hex
+hex "hex number"
  = prefix:"0x" value:[0-9a-fA-F]+ { return prefix + value.join(''); }
 
-decimal
+decimal "decimal number"
  = value:[0-9]+ { return value.join(''); }
 
 aliasable "vregister or alias"
@@ -103,10 +103,10 @@ label "label" // TODO: verify that this is correct
 //  = !(reservedWord &_) value:[a-z0-9-_?]i+ { return { type: "Label", value: value.join(''), location: location() }; }
  = !(reservedWord &_) !(_) value:[^ \t\r\n]+ { return { type: "Label", value: value.join(''), location: location() }; }
 
-reservedWord
+reservedWord "reserved word"
  = keyword / number / vRegister / iRegister / operator //- skip because they aren't valid labels
 
-keyword // TODO: am i missing any?
+keyword "keyword" // TODO: am i missing any?
  = colonKeyword / returnKeyword / clearKeyword / bcdKeyword
  / saveKeyword / loadKeyword / spriteKeyword / jumpKeyword
  / jumpZeroKeyword / constKeyword / aliasKeyword / breakpointKeyword
@@ -251,7 +251,7 @@ longKeyword
  = "long"
 
 // misc
-_ "trivia" // - TODO: decide if I should pass along like roslyn does to regenerate source from AST
+_ "comment or whitespace" // - TODO: decide if I should pass along like roslyn does to regenerate source from AST
  = trivia:(comment / ws)+ { return { type: "Trivia", value: trivia.join(''), location: location() }; }
 
 comment "comment"
