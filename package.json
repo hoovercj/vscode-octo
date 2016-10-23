@@ -1,194 +1,214 @@
 {
-    "name": "vscode-octo",
-    "displayName": "Octo Language Support",
-    "description": "vscode support for the Octo language",
-    "version": "0.2.0",
-    "publisher": "hoovercj",
-    "engines": {
-        "vscode": "^1.5.0"
-    },
-    "icon": "images/icon.png",
-    "repository": {
-        "type": "git",
-        "url": "https://github.com/hoovercj/vscode-octo.git"
-    },
-    "bugs": {
-        "url": "https://github.com/hoovercj/vscode-octo/issues"
-    },
-    "homepage": "https://github.com/hoovercj/vscode-octo",
-    "license": "MIT",
-    "categories": [
-        "Languages",
-        "Other",
-        "Debuggers"
+  "name": "vscode-octo",
+  "displayName": "Octo Language Support",
+  "description": "vscode support for the Octo language",
+  "version": "0.2.0",
+  "publisher": "hoovercj",
+  "engines": {
+    "vscode": "^1.5.0"
+  },
+  "icon": "images/icon.png",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hoovercj/vscode-octo.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hoovercj/vscode-octo/issues"
+  },
+  "homepage": "https://github.com/hoovercj/vscode-octo",
+  "license": "MIT",
+  "categories": [
+    "Languages",
+    "Other",
+    "Debuggers"
+  ],
+  "activationEvents": [
+    "onLanguage:octo"
+  ],
+  "main": "./out/src/extension",
+  "contributes": {
+    "commands": [
+      {
+        "command": "octo.showTools",
+        "title": "Octo: Show tools"
+      },
+      {
+        "command": "octo.showToolsToSide",
+        "title": "Octo: Show tools to the side"
+      },
+      {
+        "command": "octo.showSource",
+        "title": "Octo: Show source"
+      },
+      {
+        "command": "octo.openExample",
+        "title": "Octo: Open an example"
+      },
+      {
+        "command": "octo.openDocs",
+        "title": "Octo: Open docs"
+      },
+      {
+        "command": "octo.decompile",
+        "title": "Octo: Decompile"
+      }
     ],
-    "activationEvents": [
-        "onLanguage:octo"
+    "languages": [
+      {
+        "id": "octo",
+        "aliases": [
+          "Octo",
+          "octo"
+        ],
+        "extensions": [
+          ".8o"
+        ]
+      }
     ],
-    "main": "./out/src/extension",
-    "contributes": {
-        "commands": [{
-            "command": "octo.showTools",
-            "title": "Octo: Show tools"
-        }, {
-            "command": "octo.showToolsToSide",
-            "title": "Octo: Show tools to the side"
-        }, {
-            "command": "octo.showSource",
-            "title": "Octo: Show source"
-        }, {
-            "command": "octo.openExample",
-            "title": "Octo: Open an example"
-        }, {
-            "command": "octo.openDocs",
-            "title": "Octo: Open docs"
-        }, {
-            "command": "octo.decompile",
-            "title": "Octo: Decompile"
-        }],
-        "languages": [{
-            "id": "octo",
-            "aliases": ["Octo", "octo"],
-            "extensions": [".8o"]
-        }],
-        "grammars": [{
-            "language": "octo",
-            "scopeName": "source.octo",
-            "path": "./syntaxes/octo.tmLanguage"
-        }],
-        "configuration": {
-            "type": "object",
-            "title": "Settings for Octo projects",
-            "properties": {
-                "octo.shiftQuirks": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "<<= and >>= modify vx in place and ignore vy."
-                },
-                "octo.loadStoreQuirks": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "load and store operations leave i unchanged."
-                },
-                "octo.vfOrderQuirks": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "arithmetic results write to vf after status flag."
-                },
-                "octo.clipQuirks": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "clip sprites at screen edges instead of wrapping."
-                },
-                "octo.jumpQuirks": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "4 high bits of target address determines the offset register of jump0 instead of v0."
-                },
-                "octo.enableXO": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "enable XO-Chip extended instruction set."
-                },
-                "octo.color.theme": {
-                    "type": "string",
-                    "default": "OctoClassic",
-                    "description": "A color scheme for the emulator, pixel canvas, etc. Choose an existing theme, or choose 'Custom' and build your own.",
-                       "enum": [
-                        "OctoClassic",
-                        "HotDogStand",
-                        "PeaSoupLcd",
-                        "Grayscale",
-                        "CGA0",
-                        "CGA1",
-                        "Custom"
-                    ]
-                },
-                "octo.color.backgroundColor": {
-                    "type": "string",
-                    "default": "#996600",
-                    "description": "The hex value for the background color."
-                },
-                "octo.color.fillColor": {
-                    "type": "string",
-                    "default": "#FFCC00",
-                    "description": "The hex value for the foreground color."
-                },
-                "octo.color.fillColor2": {
-                    "type": "string",
-                    "default": "#FF6600",
-                    "description": "The hex value for the second foreground color. (XO-Chip)"
-                },
-                "octo.color.blendColor": {
-                    "type": "string",
-                    "default": "#662200",
-                    "description": "The hex value for the blended color. (XO-Chip)"
-                },
-                "octo.color.buzzColor": {
-                    "type": "string",
-                    "default": "#FFAA00",
-                    "description": "The hex value for the buzzer color."
-                },
-                "octo.color.quietColor": {
-                    "type": "string",
-                    "default": "#000000",
-                    "description": "The hex value for the silence color."
-                },
-                "octo.tickrate": {
-                    "type": "integer",
-                    "default": 20,
-                    "description": "The number of emulator cycles per rendering frame.",
-                    "enum": [
-                        7,
-                        15,
-                        20,
-                        30,
-                        100,
-                        200,
-                        500,
-                        1000
-                    ]
-                },
-                "octo.screenRotation": {
-                    "type": "integer",
-                    "default": 0,
-                    "description": "The degrees clockwise the screen should be rotated.",
-                    "enum": [
-                        0,
-                        90,
-                        180,
-                        270,
-                        360
-                    ]
-                },
-                "octo.numericFormat": {
-                    "type": "string",
-                    "default": "hex",
-                    "description": "The numeric format to use when decompiling.",
-                    "enum": [
-                        "hex",
-                        "dec",
-                        "bin"
-                    ]
-                },
-                "octo.numericMask": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "format the numeric operand of Random n as binary."
-                }
-            }
+    "grammars": [
+      {
+        "language": "octo",
+        "scopeName": "source.octo",
+        "path": "./syntaxes/octo.tmLanguage"
+      }
+    ],
+    "configuration": {
+      "type": "object",
+      "title": "Settings for Octo projects",
+      "properties": {
+        "octo.shiftQuirks": {
+          "type": "boolean",
+          "default": false,
+          "description": "<<= and >>= modify vx in place and ignore vy."
+        },
+        "octo.loadStoreQuirks": {
+          "type": "boolean",
+          "default": false,
+          "description": "load and store operations leave i unchanged."
+        },
+        "octo.vfOrderQuirks": {
+          "type": "boolean",
+          "default": false,
+          "description": "arithmetic results write to vf after status flag."
+        },
+        "octo.clipQuirks": {
+          "type": "boolean",
+          "default": false,
+          "description": "clip sprites at screen edges instead of wrapping."
+        },
+        "octo.jumpQuirks": {
+          "type": "boolean",
+          "default": false,
+          "description": "4 high bits of target address determines the offset register of jump0 instead of v0."
+        },
+        "octo.enableXO": {
+          "type": "boolean",
+          "default": false,
+          "description": "enable XO-Chip extended instruction set."
+        },
+        "octo.color.theme": {
+          "type": "string",
+          "default": "OctoClassic",
+          "description": "A color scheme for the emulator, pixel canvas, etc. Choose an existing theme, or choose 'Custom' and build your own.",
+          "enum": [
+            "OctoClassic",
+            "HotDogStand",
+            "PeaSoupLcd",
+            "Grayscale",
+            "CGA0",
+            "CGA1",
+            "Custom"
+          ]
+        },
+        "octo.color.backgroundColor": {
+          "type": "string",
+          "default": "#996600",
+          "description": "The hex value for the background color."
+        },
+        "octo.color.fillColor": {
+          "type": "string",
+          "default": "#FFCC00",
+          "description": "The hex value for the foreground color."
+        },
+        "octo.color.fillColor2": {
+          "type": "string",
+          "default": "#FF6600",
+          "description": "The hex value for the second foreground color. (XO-Chip)"
+        },
+        "octo.color.blendColor": {
+          "type": "string",
+          "default": "#662200",
+          "description": "The hex value for the blended color. (XO-Chip)"
+        },
+        "octo.color.buzzColor": {
+          "type": "string",
+          "default": "#FFAA00",
+          "description": "The hex value for the buzzer color."
+        },
+        "octo.color.quietColor": {
+          "type": "string",
+          "default": "#000000",
+          "description": "The hex value for the silence color."
+        },
+        "octo.tickrate": {
+          "type": "integer",
+          "default": 20,
+          "description": "The number of emulator cycles per rendering frame.",
+          "enum": [
+            7,
+            15,
+            20,
+            30,
+            100,
+            200,
+            500,
+            1000
+          ]
+        },
+        "octo.screenRotation": {
+          "type": "integer",
+          "default": 0,
+          "description": "The degrees clockwise the screen should be rotated.",
+          "enum": [
+            0,
+            90,
+            180,
+            270,
+            360
+          ]
+        },
+        "octo.numericFormat": {
+          "type": "string",
+          "default": "hex",
+          "description": "The numeric format to use when decompiling.",
+          "enum": [
+            "hex",
+            "dec",
+            "bin"
+          ]
+        },
+        "octo.numericMask": {
+          "type": "boolean",
+          "default": false,
+          "description": "format the numeric operand of Random n as binary."
         }
-    },
-    "scripts": {
-        "vscode:prepublish": "tsc -p ./",
-        "compile": "tsc -watch -p ./",
-        "postinstall": "node ./node_modules/vscode/bin/install"
-    },
-    "devDependencies": {
-        "typescript": "^2.0.3",
-        "vscode": "^1.0.0",
-        "mocha": "^2.3.3",
-        "@types/node": "^6.0.40",
-        "@types/mocha": "^2.2.32"
+      }
     }
+  },
+  "scripts": {
+    "vscode:prepublish": "tsc -p ./",
+    "compile": "tsc -watch -p ./",
+    "postinstall": "node ./node_modules/vscode/bin/install"
+  },
+  "devDependencies": {
+    "typescript": "^2.0.3",
+    "vscode": "^1.0.0",
+    "mocha": "^2.3.3",
+    "@types/node": "^6.0.40",
+    "@types/mocha": "^2.2.32",
+    "@types/es6-promise": "0.0.32"
+  },
+  "dependencies": {
+
+  }
 }

@@ -1,15 +1,14 @@
-// TODO: fix where RETURN statements can go.
-// TODO: number parsing is broken. xF is a label
+// TODO: Something is wrong. The "expected" `:alias test i` is any statement, not just aliasable
 program
  = body:statement* { return { type: "Program", body: body, location: location() }; }
 
 statement
- = loopStatement / ifStatement / unaryExpression / assignmentExpression / addressExpression
- / declaration / directive / label / keywordExpression / number / randomExpression / _
+ = declaration / loopStatement / ifStatement / unaryExpression / assignmentExpression / addressExpression
+  / directive / label / keywordExpression / number / randomExpression / _
 
 declaration "declaration"
- = op:constKeyword _ one:label _ two:number { return { type: "Declaration", op: op, one: one, two: two, location: location() }; }
- / op:aliasKeyword _ one:label _ two:aliasable { return {type: "Declaration", op: op, one: one, two: two, location: location() }; }
+ = op:constKeyword _ one:label? _ two:number { return { type: "Declaration", op: op, one: one, two: two, location: location() }; }
+ / op:aliasKeyword _ one:label? _ two:aliasable { return {type: "Declaration", op: op, one: one, two: two, location: location() }; }
  / op:":" _ one:label _ two:statement* returnKeyword* { return { type: "Declaration", op: op, one: one, two: two, location: location() }; }
 
 // CONTROL FLOW
@@ -107,7 +106,7 @@ reservedWord "reserved word"
  = keyword / number / vRegister / iRegister / operator //- skip because they aren't valid labels
 
 keyword "keyword" // TODO: am i missing any?
- = colonKeyword / returnKeyword / clearKeyword / bcdKeyword
+ = returnKeyword / clearKeyword / bcdKeyword
  / saveKeyword / loadKeyword / spriteKeyword / jumpKeyword
  / jumpZeroKeyword / constKeyword / aliasKeyword / breakpointKeyword
  / hexKeyword / bigHexKeyword / keyKeyword / notKeyKeyword
@@ -115,7 +114,7 @@ keyword "keyword" // TODO: am i missing any?
  / loresKeyword / exitKeyword / saveflagsKeyword / loadflagsKeyword
  / audioKeyword / planeKeyword / longKeyword / unpackKeyword
  / ifKeyword / thenKeyword / elseKeyword / beginKeyword / endKeyword
- / orgKeyword / nextKeyword / loopKeyword / whileKeyword / againKeyword
+ / orgKeyword / nextKeyword / loopKeyword / whileKeyword / againKeyword / colonKeyword
 
 // --- octo keywords
 colonKeyword

@@ -15,9 +15,7 @@ interface LanguageServiceInfo {
 
 export default class OctoLanguageService implements vscode.DocumentSymbolProvider, vscode.DefinitionProvider, vscode.ReferenceProvider {
     private context: vscode.ExtensionContext;
-
     private documentInfo: {[uri:string]:LanguageServiceInfo} = {};
-
     private diagnosticCollection: vscode.DiagnosticCollection;
 
     constructor(context: vscode.ExtensionContext) {
