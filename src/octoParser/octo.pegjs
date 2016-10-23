@@ -1,4 +1,5 @@
 // TODO: fix where RETURN statements can go.
+// TODO: number parsing is broken. xF is a label
 program
  = body:statement* { return { type: "Program", body: body, location: location() }; }
 
@@ -28,8 +29,14 @@ testExpression "test expression"
  = one:aliasable _ op:comparisonOperator _ two:(number / aliasable)  { return { type: "TestExpression", one: one, op: op, two: two, location: location() }; }
  / one:aliasable _ op:(keyKeyword / "-" keyKeyword) { return { type: "TestExpression", one: one, op: op, location: location() }; }
 
+operator "operator"
+ = comparisonOperator / assignmentOperator
+
 comparisonOperator "comparison operator"
  = op:("==" / "!=" / "<=" / ">=" / "<" / ">")
+
+assignmentOperator "assignment operator"
+ = ">>=" / "<<=" / "|=" / "&=" / "^=" / "-=" / "=-" / "+=" / ":="
 
 // ASSIGNMENT
 assignmentExpression "assignment expression"
@@ -52,13 +59,13 @@ addressExpression
 
 keywordExpression
  = op:(audioKeyword / scrollLeftKeyword / scrollRightKeyword / clearKeyword
-       / breakpointKeyword / hiresKeyword / loresKeyword / exitKeyword) { return { type: "KeywordExpression",op: op, location: location(),  }; }
+       / breakpointKeyword / hiresKeyword / loresKeyword / exitKeyword) { return { type: "KeywordExpression",op: op, location: location() }; }
 
 // UNARY EXPRESSION
 unaryExpression
- = op:(randomKeyword / hexKeyword / bigHexKeyword / bcdKeyword / saveKeyword / loadKeyword) _ one:aliasable { return { type: "Unaryexpression", op: op, one: one, location: location(), }; }
+ = op:(randomKeyword / hexKeyword / bigHexKeyword / bcdKeyword / saveKeyword / loadKeyword) _ one:aliasable { return { type: "UnaryExpression", op: op, one: one, location: location() }; }
  / op:(longKeyword / orgKeyword / jumpKeyword / jumpZeroKeyword / saveKeyword
-       / loadKeyword / scrollUpKeyword / scrollDownKeyword / planeKeyword) _ one:address { return { type: "Unaryexpression", op: op, one: one, location: location(), }; }
+       / loadKeyword / scrollUpKeyword / scrollDownKeyword / planeKeyword) _ one:address { return { type: "UnaryExpression", op: op, one: one, location: location() }; }
 
 // KEYWORD STATEMENTS
 directive "directive"
@@ -75,10 +82,10 @@ number "number"
  = number:(binary / hex / decimal) { return { type: "Number", value: number, location: location() }; }
 
 binary
- = "0b" decimal
+ = prefix:"0b" value:[01]+ { return prefix + value.join(''); }
 
 hex
- = "0x" decimal
+ = prefix:"0x" value:[0-9a-fA-F]+ { return prefix + value.join(''); }
 
 decimal
  = value:[0-9]+ { return value.join(''); }
@@ -87,16 +94,17 @@ aliasable "vregister or alias"
  = vRegister / label
 
 vRegister "v regiser"
- = register:("v"[0-9a-fA-F]) { return { type: "vRegister", value: register.join('') }; }
+ = register:("v"[0-9a-fA-F]) { return { type: "vRegister", value: register.join(''), location: location() }; }
 
 iRegister "i regiser"
- = register:("i") { return { type: "iRegister", value: register }; }
+ = register:("i") { return { type: "iRegister", value: register, location: location() }; }
 
 label "label" // TODO: verify that this is correct
- = !(reservedWord &_) value:[a-z0-9-_?]i+ { return { type: "Label", value: value.join(''), location: location() }; }
+//  = !(reservedWord &_) value:[a-z0-9-_?]i+ { return { type: "Label", value: value.join(''), location: location() }; }
+ = !(reservedWord &_) !(_) value:[^ \t\r\n]+ { return { type: "Label", value: value.join(''), location: location() }; }
 
 reservedWord
- = keyword / number / vRegister / iRegister // operators - skip because they aren't valid labels
+ = keyword / number / vRegister / iRegister / operator //- skip because they aren't valid labels
 
 keyword // TODO: am i missing any?
  = colonKeyword / returnKeyword / clearKeyword / bcdKeyword
@@ -244,7 +252,7 @@ longKeyword
 
 // misc
 _ "trivia" // - TODO: decide if I should pass along like roslyn does to regenerate source from AST
- = trivia:(comment / ws)+ { return { type: "Trivia", value: trivia.join('') }; }
+ = trivia:(comment / ws)+ { return { type: "Trivia", value: trivia.join(''), location: location() }; }
 
 comment "comment"
  = start:"#" rest:([^\n])* { return start + rest.join(''); }

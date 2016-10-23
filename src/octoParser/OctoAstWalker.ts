@@ -3,9 +3,9 @@ import { Node, NodeType, Program, Statement, Expression, IfStatement,
     Location, Position } from './OctoAst';
 
 // Included in this architecture:
-//  Symbol provider - aliases/consts/labels[name]: location -- DONE
-//  Go to definition - aliases/consts/labels[name]: location
-//  Find all references - usages[name]: [location]
+//  Symbol provider -- DONE
+//  Go to definition -- DONE
+//  Find all references -- DONE
 // TODO:
 //  Diagnostics Provider - if parse or compile error, show diagnostics
 //  Hover Provider - what info do I provide???
@@ -83,6 +83,7 @@ export class OctoAstWalker implements Walker {
             case NodeType.AddressExpression:
             case NodeType.KeywordExpression:
             case NodeType.UnaryExpression:
+            case NodeType.Directive:
                 this.walkExpression(<Expression>node)
                 break;
             default:
@@ -114,6 +115,8 @@ export class OctoAstWalker implements Walker {
             case NodeType.UnaryExpression:
                 this.handleUnaryExpression(node);
                 break;
+            case NodeType.Directive:
+                this.handleDirective(node);
             default:
                 break;
         }
@@ -144,34 +147,34 @@ export class OctoAstWalker implements Walker {
     }
 
     walkValue(node: Value): void {
-        // TODO;
+        if (node && node.type && node.type == "Trivia") { return; }
+        this.AddUsageForNode(node);
     }
 
     private handleIfBranch(node: Statement | String) {
         if (typeof(node) == 'string') {
             this.handleReturnKeyword;
+        } else if (Array.isArray(node)) {
+            node.forEach(s => this.walkStatement(s));
+        } else {
+            this.walkStatement(<Statement>node);
         }
-
-        this.walkStatement(<Statement>node);
     }
 
     private handleKeywordExpression(node: Expression) {
-        // TODO
+
+    }
+
+    private handleDirective(node: Expression) {
+        this.AddUsageForNode(node);
     }
 
     private handleUnaryExpression(node: Expression) {
         let value = node.one; 
         switch (value.type) {
             case "vRegister":
-                
-                break;
             case "Label":
-                // if (this.IsVRegister(value)) {
-                //     this.AddUsage(value.value, value.location);
-                // }
-                if (Object.keys(this.constants).indexOf(value.value)) {
-                    this.AddUsage(value.value, node.location);
-                }
+                this.AddUsageForNode(value);
                 break;
             case "Number":
                 break;
@@ -182,39 +185,33 @@ export class OctoAstWalker implements Walker {
     }
 
     private handleRandomExpression(node: Expression): void {
-        let value = node.one; 
-        if (Object.keys(this.constants).indexOf(value)) {
-            this.AddUsage(value, node.location);
-        }
-
-        // TODO
+        this.AddUsageForNode(node);
     }
 
     private handleAddressExpression(node: Expression): void {
-        if (this.ParseNumber(node.one.value) == null) {
-            this.AddUsage(node.one.value, node.location);
-        }
+        this.AddUsageForNode(node);
     }
 
     private handleDeclaration(node: Expression): void {
-        let declaration = <Declaration>{ value: node.two.value, location: node.location };
-        this.AddUsage(node.one.value, node.one.location);
+        let name = node.one;
+        this.AddUsageForNode(name);
+        let declaration = <Declaration>{ value: name.value, location: name.location };
 
         switch (node.op) {
             case ":const":
-                this.constants[node.one.value] = declaration;
+                this.constants[name.value] = declaration;
                 break;
             case ":alias":
-                this.aliases[node.one.value] = declaration;
+                this.aliases[name.value] = declaration;
                 break;
             case ":":
-                this.labels[node.one.value] = declaration;
-                if (Array.isArray(node.two)) {
-                    node.two.forEach(s => {
+                this.labels[name.value] = declaration;
+                let value = node.two;
+                if (Array.isArray(value)) {
+                    value.forEach(s => {
                         this.walkStatement(s);
                     });
                 }
-                // TODO: what to do?
                 break;
             default:
                 throw "Unknown declaration type";
@@ -222,19 +219,39 @@ export class OctoAstWalker implements Walker {
     }
 
     private handleAssignmentExpression(node: Expression) {
-        // TODO
-        this.AddUsage(node.one.value, node.location);
-        if (this.IsVRegister(node.one)) {
+        let left = node.one;
+        let right = node.two;
+        this.AddUsageForNode(left);
+        this.AddUsageForNode(right);
+        if (this.IsVRegister(left)) {
 
-        } else if (node.one.type == "iRegister") {
+        } else if (this.IsIRegister(left)) {
             
-        } else if (node.one == "buzzer" || node.one == "delay") {
+        } else if (left.type == "buzzer" || left.type == "delay") {
 
         }
     }
 
     private handleReturnKeyword() {
-        // TODO
+
+    }
+
+    private IsAlias(value: any): boolean {
+        if (typeof(value) == "object" && value.type != 'Label') { return false; };
+
+        if (typeof(value) == "string") {
+            if (Object.keys(this.aliases).indexOf(value) >= 0) { return true; }
+        }
+        return false;
+    }
+
+    private IsConstant(value: any): boolean {
+        if (typeof(value) == "object" && value.type != 'Label') { return false; };
+
+        if (typeof(value) == "string") {
+            if (Object.keys(this.constants).indexOf(value) >= 0) { return true; }
+        }
+        return false;
     }
 
     private IsVRegister(value: any): boolean {
@@ -244,16 +261,19 @@ export class OctoAstWalker implements Walker {
             // Explicit v-register
             if (V_REGISTERS.indexOf(value.toLowerCase()) >= 0) { return true; }
             // Aliased v-register
-            if (Object.keys(this.aliases).indexOf(value) >= 0) { return true; }
+            if (this.IsAlias(value)) { return true; }
         }
         return false;
     }
 
-    private IsIRegister(value: string): boolean {
+    private IsIRegister(value: any): boolean {
+        if (typeof(value) == "object") { return value.type == "vRegister" };
+
         return value == 'i';
     }
 
     private handleTestExpression(node: Expression): void {
+        this.AddUsageForNode(node);
         switch (node.op) {
             case "-key":
             case "key":
@@ -263,7 +283,27 @@ export class OctoAstWalker implements Walker {
         }
     }
 
-    // TODO: this is broken. The id being passed in is an object
+    private AddUsageForNode(node) {
+        if (!node) { return; }
+
+        if (node.value && node.location) {
+            this.AddUsage(node.value, node.location);
+            return;
+        }
+
+        if (node.one) {
+            this.AddUsageForNode(node.one);
+        }
+
+        if (node.two) {
+            this.AddUsageForNode(node.two);
+        }
+
+        if (node.three) {
+            this.AddUsageForNode(node.three);
+        }
+    }
+
     private AddUsage(id: string, loc: Location): void {
         let nodeUsages: Location[] = this.usages[id] || [];
         nodeUsages.push(loc);

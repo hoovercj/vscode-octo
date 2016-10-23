@@ -8,7 +8,7 @@ import * as Octo from './octo';
 import * as cp from 'child_process';
 
 // import OctoSymbolProvider from './octoSymbolProvider';
-import OctoLanguageService from './OctoLanguageService';
+import OctoLanguageService from './octoLanguageService';
 import OctoTools from './octoTools';
 
 let extensionContext: ExtensionContext;
