@@ -32,6 +32,7 @@ export function activate(context: ExtensionContext) {
     octoTools.register();
 
     languageService = new OctoLanguageService(context);
+    configureLanguageService();
     languageService.register();
 
     // Process known files
@@ -55,6 +56,7 @@ export function activate(context: ExtensionContext) {
     });
 
     vscode.workspace.onDidChangeConfiguration(() => {
+        configureLanguageService();
         vscode.workspace.textDocuments.forEach((document) => {
             if (isOctoFile) {
                 OctoTools.update(document.uri);
@@ -71,14 +73,18 @@ function onUpdate(document: vscode.TextDocument) {
         delayer = new ThrottledDelayer<void>(250);
         delayers[key] = delayer;
     }
-    console.log('update')
     delayer.trigger(() => {
         return Promise.resolve().then(() => {
-            console.log('trigger');
             OctoTools.update(document.uri);
             languageService.update(document);
         })
     });
+}
+
+function configureLanguageService() {
+    let config = vscode.workspace.getConfiguration('octo');
+    let mode = config.get('languageService', 'enabled');
+    languageService.setMode(mode);
 }
 
 function isOctoFile(document: vscode.TextDocument) {

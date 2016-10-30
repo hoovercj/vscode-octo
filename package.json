@@ -2,7 +2,7 @@
   "name": "vscode-octo",
   "displayName": "Octo Language Support",
   "description": "vscode support for the Octo language",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "publisher": "hoovercj",
   "engines": {
     "vscode": "^1.5.0"
@@ -190,7 +190,17 @@
         "octo.numericMask": {
           "type": "boolean",
           "default": false,
-          "description": "format the numeric operand of Random n as binary."
+          "description": "Format the numeric operand of Random n as binary."
+        },
+        "octo.languageService": {
+          "type": "string",
+          "default": "enabled",
+          "enum": [
+            "enabled",
+            "diagnosticsOff",
+            "disabled"
+          ],
+          "description": "Enable or disable language service features such as go to symbol and syntax error diagnostics. Diagnostics are experimental and can be disabled with \"diagnosticsOff\""
         }
       }
     }

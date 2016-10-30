@@ -17,9 +17,23 @@ export default class OctoLanguageService implements vscode.DocumentSymbolProvide
     private context: vscode.ExtensionContext;
     private documentInfo: {[uri:string]:LanguageServiceInfo} = {};
     private diagnosticCollection: vscode.DiagnosticCollection;
+    private mode: string = 'disabled';
 
-    constructor(context: vscode.ExtensionContext) {
+    private modes = {
+        enabled: 'enabled',
+        diagnosticsOff: 'diagnosticsOff',
+        disabled: 'disabled'
+    }
+
+    constructor(context: vscode.ExtensionContext, mode?: string) {
         this.context = context;
+        this.setMode(mode);
+    }
+
+    public setMode(mode: string) {
+        if (mode) {
+            this.mode = mode;
+        }
     }
 
     public register() {
@@ -33,14 +47,26 @@ export default class OctoLanguageService implements vscode.DocumentSymbolProvide
     }
 
     public provideDocumentSymbols(document: vscode.TextDocument, token: vscode.CancellationToken): vscode.SymbolInformation[] | Thenable<vscode.SymbolInformation[]> {
+        if (this.mode === this.modes.disabled) {
+            return [];
+        }
+
         return this.getSymbols(document.uri.toString());
     }
 
     public provideDefinition(document: vscode.TextDocument, position: vscode.Position, token: vscode.CancellationToken): vscode.Definition | Thenable<vscode.Definition> {
+        if (this.mode === this.modes.disabled) {
+            return null;
+        }
+
         return this.getSymbolDeclaredAtPosition(document, position);
     }
 
     public provideReferences(document: vscode.TextDocument, position: vscode.Position, context: vscode.ReferenceContext, token: vscode.CancellationToken): vscode.Location[] | Thenable<vscode.Location[]> {
+        if (this.mode === this.modes.disabled) {
+            return [];
+        }
+
         let range = document.getWordRangeAtPosition(position);
         let identifier = document.getText(range);
 
@@ -85,6 +111,11 @@ export default class OctoLanguageService implements vscode.DocumentSymbolProvide
 
     public update(document: vscode.TextDocument): void {
         this.diagnosticCollection.set(document.uri, []);
+
+        if (this.mode != this.modes.enabled) {
+            return null;
+        }
+
         let stringUri = document.uri.toString();
         if (!this.documentInfo[stringUri]) {
             this.documentInfo[stringUri] = {
@@ -110,14 +141,14 @@ export default class OctoLanguageService implements vscode.DocumentSymbolProvide
             range.end.character = Number.MAX_VALUE;
 
             let diagnostic = <vscode.Diagnostic> {
-                message: error.message,
+                // message: error.message, // TODO: Ignore message for now because it isn't innacurate.
+                message: "Error: Syntax error.",
                 range: range,
                 source: "Octo Parser",
                 severity: vscode.DiagnosticSeverity.Error
             }
 
             this.diagnosticCollection.set(document.uri, [diagnostic]);
-            // console.error(error);
         }
     }
 

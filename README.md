@@ -1,14 +1,20 @@
 # octo-language README
 
-This extension provides language support for the Octo language based on the [development environment](http://johnearnest.github.io/Octo/) by John Earnest.
+This extension provides Octo language support by combining tools based on the [development environment](http://johnearnest.github.io/Octo/) by John Earnest with a custom language service.
 
 ## Overview
 `Octo: Open tools` opens the main Octo development environment. It contains an emulator to preview your code, edits for sprites and audio, an on-screen hex keyboard, and tools read from and save to .ch8 files.
 
 There are also commands to open docs and examples and to decompile ch8 hex instructions right in the editor pane. All emulator, compiler, and decompiler options are configured in user or workspace settings. More info on all of that below. 
 
-## Features
+## Language Service
+- Go-to Symbol
+- Go-to/Peek Definition
+- Find/Change all occurences
+- Syntax error diagnostics (experimental)
 - Syntax highlighting
+
+## Octo Tools
 - Emulator (test changes instantly)
 - Debugging
 - Sprite Editor
@@ -35,8 +41,9 @@ The command `Octo: Open example` lets you choose from nearly two dozen examples 
 __NOTE:__ Until [this issue](https://github.com/Microsoft/vscode/issues/12283) is resolved, these examples are opened as editable documents, so any changes you make will clobber the example file. If you want to edit the examples I suggest copying the contents to a new file and saving. If you DO mess up and need the originals back, reinstall the extension OR find the extension directory in your vscode installation and look for the original files in `octo/examples_copy/`.
 
 ## Configuration
-There are several options that can ve configured in user or workspace settings:
+There are several options that can be configured in user or workspace settings:
 
+`octo.languageService`: Enable or disable language service features such as go to symbol and syntax error diagnostics. Diagnostics are experimental and can be disabled with "diagnosticsOff".  
 `octo.shiftQuirks`: <<= and >>= modify vx in place and ignore vy.  
 `octo.loadStoreQuirks`: load and store operations leave i unchanged.  
 `octo.vfOrderQuirks`: arithmetic results write to vf after status flag.  
@@ -65,11 +72,19 @@ There are several options that can ve configured in user or workspace settings:
 
 ## Known Issues
 This is an early version and I may not have understood all of the features of the original development environment. Please report issues and feature requests [here](https://github.com/hoovercj/vscode-octo/issues).
-- After changing a configuration setting, the .8o file must be edited before the emulator will refresh
+- LanguageService features (especially syntax error diagnostics) are based on a custom parser and may not be 100% accurate.
+- After changing a configuration setting, the .8o file must be edited before the emulator will refresh.
 - Sometimes an example or doc doesn't open the first time. Try opening it again.
-- Related to the above, examples or docs left open when you close a workspace may fail to load when the workspace is re-opened
+- Related to the above, examples or docs left open when you close a workspace may fail to load when the workspace is re-opened.
 
 ## Release Notes
+
+### 0.3.0
+Added a LanguageService
+- Go-to Symbol
+- Go-to/Peek Definition
+- Find/Change all occurences
+- Experimental: Diagnostics
 
 ### 0.2.0
 Cleanup and several bug fixes including:
