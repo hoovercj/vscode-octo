@@ -156,12 +156,13 @@ function Compiler(source) {
 	this.longproto = {}; // set<name, true>
 	this.aliases   = {}; // map<name, registernum>
 	this.constants = {}; // map<name, token>
-	this.hasmain = true;
+	this.hasmain = true; // This seems strangely named? Or I don't understand it
 	this.schip = false;
 	this.xo = false;
 	this.breakpoints = {}; // map<address, name>
 	this.hereaddr = START_ADDRESS; // Represents the Chip8 address (data index + 0x200)
 
+	// TODO: I think this.token is used when catching exceptions
 	this.token = null;
 
 	// Saves the given byte at the current rom address and increments the address
@@ -202,7 +203,8 @@ function Compiler(source) {
 	}
 
 	// Takes a rom address and a destination address
-	// Sets the rom address (- START_ADDRESS) to the upper-most nibble prepended with a 1. (so 5 bits)
+	// Sets the rom address (- START_ADDRESS) to the upper-most nibble of the destination
+	//  prepended with a 1. (so 5 bits)
 	// Sets the rom address + 1 (- START_ADDRESS) to the lower byte of destination. 
 	this.jump = function(addr, dest) {
 		this.rom[addr - START_ADDRESS] = (0x10 | ((dest >> 8) & 0xF));
@@ -246,11 +248,10 @@ function Compiler(source) {
 	}
 
 	// Destructive iteration to get the next token that throws if
-	// the token is not a number or is a "proto".
+	// the token is not a number or is a "proto" (forward declaration).
 	this.constantValue = function() {
 		var number = this.next();
 		if (typeof number != "number") {
-			// TODO: what is a proto?
 			if (number in this.protos) {
 				throw "Constants cannot refer to the address of a forward declaration.";
 			}
@@ -304,8 +305,10 @@ function Compiler(source) {
 			if (nnnn in this.constants) {
 				nnnn = this.constants[nnnn];
 			}
+			// If this is a known forward declaration,
+			// add the current address to the list of occurences
 			else if (nnnn in this.protos) {
-				this.protos[nnnn].push(this.here()+2); // TODO: what does this do?
+				this.protos[nnnn].push(this.here()+2); 
 				this.longproto[this.here()+2] = true;
 				nnnn = 0;
 			}
@@ -313,7 +316,9 @@ function Compiler(source) {
 				nnnn = this.dict[nnnn];
 			}
 			else {
-				this.protos[this.checkName(nnnn, "label")] = [this.here()+2]; // TODO: what does this do?
+				// If this is a known forward declaration,
+				// add the current address to the list of occurences
+				this.protos[this.checkName(nnnn, "label")] = [this.here()+2];
 				this.longproto[this.here()+2] = true;
 				nnnn = 0;
 			}
@@ -391,12 +396,22 @@ function Compiler(source) {
 		return (n & 0xF);
 	}
 
-	// TODO
 	this.conditional = function(negated) {
 		// Destructively reads the next token as a register. If it isn't, it throws an exception.
 		var reg   = this.register();
 		var operator = this.next();
 		var compTemp = this.aliases["compare-temp"];
+		// semantically for if...then, we want to skip if the 
+		// condition is false.
+		// To that end, the operator is NOT negated when using "if...then"
+		// but IS negated when using "if...begin"
+		// This is because the "if...then" should follow normal Chip8
+		// behavior and skip the statement if the condition is not true.
+		// i.e. if v2 == v1 clear end
+		// If the conditional is true, execute the next statement, otherwise skip.
+		// For "if...begin", use the opposite behavior. A jump/branch statement will be
+		// injected as the next statement before the if block. So if the condition
+		// is true, we need to skip the next statement to execute the block.
 		if (negated) {
 			if      (operator == "=="  ) { operator = "!="; }
 			else if (operator == "!="  ) { operator = "=="; }
@@ -410,7 +425,6 @@ function Compiler(source) {
 		// If operator is an (in)equality operator, peek at (and then read) the next token.
 		// If it is a register, use the instruction for comparing registers (9XY0/5XY0)
 		// Else use the instruction for comparing registers to NN values (4YNN/3XNN)
-		// TODO: Why are the == and != backwards from the opcodes listed on wikipedia?
 		if (operator == "==") {
 			if (this.isRegister()) { this.inst(0x90 | reg, this.register() << 4); }
 			else                   { this.inst(0x40 | reg, this.shortValue()); }
@@ -472,9 +486,12 @@ function Compiler(source) {
 		}
 	}
 
-	// TODO
+	// Called when an "if" token is found and gets the token AFTER a conditional.
+	// if VX (=, !=, etc.) VY
+	// OR if VX (-key, key)
+	// Returns the first token after the conditional phrase without modifying the tokens list
+	// Token could be "then" or "begin"
 	this.controlToken = function() {
-		// ignore a condition
 		var op = this.tokens[1][TOKEN_SYMBOL];
 		var index = 3;
 		if (op == "key" || op == "-key") { index = 2; }
@@ -482,61 +499,98 @@ function Compiler(source) {
 		return this.tokens[index];
 	}
 
-	// TODO
-	this.iassign = function(token) {
-		if (token == ":=") {
-			var o = this.next();
-			if (o == "hex") { this.inst(0xF0 | this.register(), 0x29); }
-			else if (o == "bighex") {
+	// Add instructions for an i register assignment
+	this.iassign = function(operator) {
+		// For a direct assignment, destructively read the next token
+		// and check for address extraction statements (hex, bighex, long).
+		// If found, use the appropriate Chip8, Schip, or XO instruction
+		// with the next register or address,
+		// otherwise use the Chip8 memory assignment instruction.
+		if (operator == ":=") {
+			var token = this.next();
+			// FX29 (I=sprite_addr[Vx])
+			if (token == "hex") { this.inst(0xF0 | this.register(), 0x29); }
+			// FX30 - Superchip (I=sprite_addr[Vx])
+			else if (token == "bighex") {
 				this.schip = true;
 				this.inst(0xF0 | this.register(), 0x30);
 			}
-			else if (o == "long") {
+			else if (token == "long") {
 				this.xo = true;
 				var addr = this.veryWideValue();
+				// Special XO instructions.
 				this.inst(0xF0, 0x00);
 				this.inst((addr>>8)&0xFF, addr&0xFF);
 			}
-			else { this.immediate(0xA0, this.wideValue(o)); }
+			// ANNN (I = NNN)
+			else { this.immediate(0xA0, this.wideValue(token)); }
 		}
-		else if (token == "+=") {
+		// For a += operation, use the FX1E instruction to add the
+		// value of the next token (a register) to I
+		else if (operator == "+=") {
+			// FX1E (I +=Vx)
 			this.inst(0xF0 | this.register(), 0x1E);
 		}
 		else {
-			throw "The operator '"+token+"' cannot target the i register.";
+			throw "The operator '"+operator+"' cannot target the i register.";
 		}
 	}
 
-	// TODO
-	this.vassign = function(reg, token) {
-		if (token == ":=") {
-			var o = this.next();
-			if (this.isRegister(o)) { this.fourop(0x8, reg, this.register(o), 0x0); }
-			else if (o == "random") { this.inst(0xC0 | reg, this.shortValue()); }
-			else if (o == "key")    { this.inst(0xF0 | reg, 0x0A); }
-			else if (o == "delay")  { this.inst(0xF0 | reg, 0x07); }
-			else                    { this.inst(0x60 | reg, this.shortValue(o)); }
+	// Add instructions for a v register assignment
+	// Called with the destination register and the assignment operator
+	this.vassign = function(register, operator) {
+		// For a direct assignment, destructively read the next token
+		// and check for a register or keyword.
+		if (operator == ":=") {
+			var token = this.next();
+			// 8XY0 (Vx=Vy)
+			if (this.isRegister(token)) { this.fourop(0x8, register, this.register(token), 0x0); }
+			// CXNN (Vx=rand()&NN)
+			else if (token == "random") { this.inst(0xC0 | register, this.shortValue()); }
+			// FX0A Vx = get_key()
+			else if (token == "key")    { this.inst(0xF0 | register, 0x0A); }
+			// FX07 Vx = get_delay()
+			else if (token == "delay")  { this.inst(0xF0 | register, 0x07); }
+			// 6XNN Vx = NN
+			else                    { this.inst(0x60 | register, this.shortValue(token)); }
 		}
-		else if ("+=" == token) {
-			if (this.isRegister()) { this.fourop(0x8, reg, this.register(), 0x4); }
-			else                   { this.inst(0x70 | reg, this.shortValue()); }
+		// For an increment-assignment operator, check for register or constant
+		else if ("+=" == operator) {
+			// 8XY4 Vx += Vy
+			if (this.isRegister()) { this.fourop(0x8, register, this.register(), 0x4); }
+			// 7XNN Vx += NN
+			else                   { this.inst(0x70 | register, this.shortValue()); }
 		}
-		else if ("|="  == token) { this.fourop(0x8, reg, this.register(), 0x1); }
-		else if ("&="  == token) { this.fourop(0x8, reg, this.register(), 0x2); }
-		else if ("^="  == token) { this.fourop(0x8, reg, this.register(), 0x3); }
-		else if ("-="  == token) { this.fourop(0x8, reg, this.register(), 0x5); }
-		else if ("=-"  == token) { this.fourop(0x8, reg, this.register(), 0x7); }
-		else if (">>=" == token) { this.fourop(0x8, reg, this.register(), 0x6); }
-		else if ("<<=" == token) { this.fourop(0x8, reg, this.register(), 0xE); }
+		// For all other operators, use 8XY_ instructions
+		// 8XY1 Vx=Vx|Vy
+		else if ("|="  == operator) { this.fourop(0x8, register, this.register(), 0x1); }
+		// 8XY2 Vx=Vx&Vy
+		else if ("&="  == operator) { this.fourop(0x8, register, this.register(), 0x2); }
+		// 8XY3 Vx=Vx^Vy
+		else if ("^="  == operator) { this.fourop(0x8, register, this.register(), 0x3); }
+		// 8XY5 Vx -= Vy
+		else if ("-="  == operator) { this.fourop(0x8, register, this.register(), 0x5); }
+		// 8XY7 Vx=Vy-Vx
+		else if ("=-"  == operator) { this.fourop(0x8, register, this.register(), 0x7); }
+		// 8XY6 Vx >> 1
+		else if (">>=" == operator) { this.fourop(0x8, register, this.register(), 0x6); }
+		// 8XYE Vx << 1
+		else if ("<<=" == operator) { this.fourop(0x8, register, this.register(), 0xE); }
 		else {
-			throw "Unrecognized operator '"+token+"'.";
+			throw "Unrecognized operator '"+operator+"'.";
 		}
 	}
 
-	// TODO
+	// Offset 0 is used for normal labels (: label)
+	// Offset 1 is used for :next statements (:next label)
 	this.resolveLabel = function(offset) {
+		// The target is the address to jump to when the a label is used
+		// For a normal label, the byte immediately after the label is used
+		// For a :next label, the second byte is used. This allows, for example,
+		//  the second operand of a statement to be overwritten :next target va := 2 ;
 		var target = (this.here() + offset);
 		var label = this.checkName(this.next(), "label");
+		// If this is the main label, reset everything
 		if ((target == 0x202) && (label == "main")) {
 			this.hasmain = false;
 			this.rom = [];
@@ -546,11 +600,13 @@ function Compiler(source) {
 		if (label in this.dict) { throw "The name '" + label + "' has already been defined."; }
 		this.dict[label] = target;
 
+		// if label is a forward declaration, backfill the address
 		if (label in this.protos) {
+			// TODO: important for adding usage information
 			for(var z = 0; z < this.protos[label].length; z++) {
 				var addr  = this.protos[label][z];
 				if (this.longproto[addr]) {
-					// i := long target
+					// i := long target (NNN)
 					this.rom[addr - START_ADDRESS] = (target >> 8) & 0xFF;
 					this.rom[addr - 0x1FF] = (target & 0xFF);
 				}
@@ -568,33 +624,53 @@ function Compiler(source) {
 					this.rom[addr - 0x1FF] = (target & 0xFF);
 				}
 			}
+			// This label is no longer a forward declaration.
 			delete this.protos[label];
 		}
 	}
 
-	// TODO
+	// The big bad instruction processing method
+	// Controls the semantics of the language
+	// Takes a token, processes it, and processes the following tokens
+	// needed to generate Chip8 instructions
 	this.instruction = function(token) {
 		if (token == ":") { this.resolveLabel(0); }
 		else if (token == ":next") { this.resolveLabel(1); }
 		else if (token == ":unpack") {
-			var v = this.tinyValue();
-			var a = this.wideValue();
-			this.inst(0x60 | this.aliases["unpack-hi"], (v << 4) | (a >> 8));
-			this.inst(0x60 | this.aliases["unpack-lo"], a);
+			var n = this.tinyValue();
+			var nnn = this.wideValue();
+			// 6XNN Vx = NN
+			this.inst(0x60 | this.aliases["unpack-hi"], (n << 4) | (nnn >> 8));
+			this.inst(0x60 | this.aliases["unpack-lo"], nnn);
 		}
+		// :breakpoint is a no-op statement
+		// Simply store the breakpoint name at the current address
 		else if (token == ":breakpoint") { this.breakpoints[this.here()] = this.next(); }
+		// :proto is deprecated and is now a no-op statement
 		else if (token == ":proto")  { this.next(); } // deprecated.
+		// No-op: If token is the :alias keyword, make sure the label is valid
+		// and assign the following register to it.
+		// Aliases can be reassigned and their value can be register literals or other aliases
 		else if (token == ":alias")  { this.aliases[this.checkName(this.next(), "alias")] = this.register(); }
+		// No-op: If token is the :const keyword, make sure the label is not reserved
+		// that it hasn't been used as a constant before. The label can be
+		// the same as an alias or labeled region
 		else if (token == ":const")  {
 			var name = this.checkName(this.next(), "constant");
 			if (name in this.constants) { throw "The name '"+name+"' has already been defined."; }
 			this.constants[name] = this.constantValue();
 		}
+		// No-op: Simply moves the address pointer to the address
+		// specified by the next token
 		else if (token == ":org")    { this.hereaddr = this.constantValue(); }
+		// 00EE return; Returns from a subroutine.
 		else if (token == ";")       { this.inst(0x00, 0xEE); }
 		else if (token == "return")  { this.inst(0x00, 0xEE); }
+		//00E0 disp_clear()
 		else if (token == "clear")   { this.inst(0x00, 0xE0); }
+		// FX33 set_BCD(Vx); *(I+0)=BCD(3); *(I+1)=BCD(2); *(I+2)=BCD(1);
 		else if (token == "bcd")     { this.inst(0xF0 | this.register(), 0x33); }
+		// TODO
 		else if (token == "save")    {
 			var reg = this.register();
 			if (this.tokens.length > 0 && this.peek() == "-") {
@@ -606,6 +682,7 @@ function Compiler(source) {
 				this.inst(0xF0 | reg, 0x55);
 			}
 		}
+		// TODO
 		else if (token == "load") {
 			var reg = this.register();
 			if (this.tokens.length > 0 && this.peek() == "-") {
@@ -617,17 +694,29 @@ function Compiler(source) {
 				this.inst(0xF0 | reg, 0x65);
 			}
 		}
+		// FX15 delay_timer(Vx)
 		else if (token == "delay")   { this.expect(":="); this.inst(0xF0 | this.register(), 0x15); }
+		// FX18 sound_timer(Vx)
 		else if (token == "buzzer")  { this.expect(":="); this.inst(0xF0 | this.register(), 0x18); }
+		// If the token is an 'if', keep parsing to determine
+		// the type of control block (if then... or if begin...else...)
 		else if (token == "if") {
 			var control = this.controlToken();
 			if (control[0] == "then") {
+				// Evaluate the conditional statement without negation
+				// If the conditional is true, the next statement will be executed
 				this.conditional(false);
 				this.expect("then");
 			}
 			else if (control[0] == "begin") {
+				// Evaluate the conditional statement with negation
+				// Inject a jump/branch here
+				// If the conditional is true, the branch statement will be skipped
+				// and the block will be executed.
+				// otherwise the next statement will be executed.
 				this.conditional(true);
 				this.expect("begin");
+				// TODO: what does this actually do?
 				this.branches.push([this.here(), this.token, "begin"]);
 				this.inst(0x00, 0x00);
 			}
@@ -636,6 +725,7 @@ function Compiler(source) {
 				throw "Expected 'then' or 'begin'.";
 			}
 		}
+		// TODO
 		else if (token == "else") {
 			if (this.branches.length < 1) {
 				throw "This 'else' does not have a matching 'begin'.";
@@ -644,15 +734,20 @@ function Compiler(source) {
 			this.branches.push([this.here(), this.token, "else"]);
 			this.inst(0x00, 0x00);
 		}
+		// TODO
 		else if (token == "end") {
 			if (this.branches.length < 1) {
 				throw "This 'end' does not have a matching 'begin'.";
 			}
 			this.jump(this.branches.pop()[0], this.here());
 		}
+		// BNNN PC=V0+NNN
 		else if (token == "jump0")   { this.immediate(0xB0, this.wideValue()); }
+		// 1NNN goto NNN;
 		else if (token == "jump")    { this.immediate(0x10, this.wideValue()); }
+		// 0NNN Calls RCA 1802 program at address NNN.
 		else if (token == "native")  { this.immediate(0x00, this.wideValue()); }
+		// TODO
 		else if (token == "sprite")  {
 			var r1 = this.register();
 			var r2 = this.register();
@@ -660,10 +755,12 @@ function Compiler(source) {
 			if (size == 0) { this.schip = true; }
 			this.inst(0xD0 | r1, (r2 << 4) | size);
 		}
+		// TODO
 		else if (token == "loop") {
 			this.loops.push([this.here(), this.token]);
 			this.whiles.push(null);
 		}
+		// TODO
 		else if (token == "while") {
 			if (this.loops.length < 1) {
 				throw "This 'while' is not within a loop.";
@@ -672,6 +769,7 @@ function Compiler(source) {
 			this.whiles.push(this.here());
 			this.immediate(0x10, 0);
 		}
+		// TODO
 		else if (token == "again") {
 			if (this.loops.length < 1) {
 				throw "This 'again' does not have a matching 'loop'.";
@@ -682,6 +780,7 @@ function Compiler(source) {
 			}
 			this.whiles.pop();
 		}
+		// TODO
 		else if (token == "plane") {
 			var plane = this.tinyValue();
 			if (plane > 3) { throw "the plane bitmask must be [0, 3]."; }
@@ -692,44 +791,69 @@ function Compiler(source) {
 			this.xo = true;
 			this.inst(0xF0, 0x02);
 		}
+		// 0x00CN SChip - scroll-down n
 		else if (token == "scroll-down")  { this.schip = true; this.inst(0x00, 0xC0 | this.tinyValue()); }
+		// 0x00DN SChip - scroll-up n
 		else if (token == "scroll-up")    { this.xo    = true; this.inst(0x00, 0xD0 | this.tinyValue()); }
+		// 0x00FB SChip
 		else if (token == "scroll-right") { this.schip = true; this.inst(0x00, 0xFB); }
+		// 0x00FC SChip
 		else if (token == "scroll-left")  { this.schip = true; this.inst(0x00, 0xFC); }
+		// 0x00FD SChip - stop the program and exit the emulator
 		else if (token == "exit")         { this.schip = true; this.inst(0x00, 0xFD); }
+		// 0x00FE SChip - switch to lores mode
 		else if (token == "lores")        { this.schip = true; this.inst(0x00, 0xFE); }
+		// 0x00FF SChip - switch to hires mode
 		else if (token == "hires")        { this.schip = true; this.inst(0x00, 0xFF); }
+		// TODO
 		else if (token == "saveflags") {
 			var flags = this.register();
 			if (flags > 7) { throw "saveflags argument must be v[0,7]."; }
 			this.schip = true;
 			this.inst(0xF0 | flags, 0x75);
 		}
+		// TODO
 		else if (token == "loadflags") {
 			var flags = this.register();
 			if (flags > 7) { throw "loadflags argument must be v[0,7]."; }
 			this.schip = true;
 			this.inst(0xF0 | flags, 0x85);
 		}
+		// Read the next token (presumably an operator) and pass it to iassign
+		// which will, based on the following token(s), complete the assignment
 		else if (token == "i") {
 			this.iassign(this.next());
 		}
+		// If the token is a vRegister, complete call vassign with the register
+		// and the next token which is presumably an operator. vassign will,
+		// based on the operator and following tokens, complete the assignment
 		else if (this.isRegister(token)) {
 			this.vassign(this.register(token), this.next());
 		}
+		// If nothing else matches, this must be an already declared subroutine.
+		// Call it! 2NNN *(0xNNN)()
+		// TODO: can this be just plain data?
 		else {
 			this.immediate(0x20, this.wideValue(token));
 		}
 	}
 
-	// TODO
+	// The main compile method.
+	// 1. Set up default aliases
+	// 2. Reserve a jump slot ( TODO: WHAT DOES THIS MEAN?)
+	// 3. Iterate through tokens and process them
+	// 4. Validate program (no dangling branches, loops, etc.)
+	// 5. Fill empty rom memory with 0x00
 	this.go = function() {
 		this.aliases["compare-temp"] = 0xE;
 		this.aliases["unpack-hi"]    = 0x0;
 		this.aliases["unpack-lo"]    = 0x1;
 
-		this.inst(0, 0); // reserve a jump slot
+		this.inst(0, 0); // reserve the first jump slot for the 'main' label
 		while(this.tokens.length > 0) {
+			// If the type is a number, validate it and push it to the rom
+			// This could be the data section of a sprite definition
+			// Otherwise process it as an instruction
 			if (typeof this.peek() == "number") {
 				var nn = this.next();
 				if (nn < -128 || nn > 255) {
@@ -745,6 +869,8 @@ function Compiler(source) {
 			// resolve the main branch
 			this.jump(START_ADDRESS, this.wideValue("main"));
 		}
+		// Could be replaced with var keys = Object.keys(this.protos)
+		// If there are unused protos, unclosed loops, or unended branches, throw an exception
 		var keys = [];
 		for (var k in this.protos) { keys.push(k); }
 		if (keys.length > 0) {
