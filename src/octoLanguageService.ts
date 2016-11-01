@@ -133,7 +133,8 @@ export default class OctoLanguageService implements vscode.DocumentSymbolProvide
             this.documentInfo[stringUri].walker.walkProgram(newTree);
             this.buildSymbolsList(document);
             this.documentInfo[stringUri].lastValidTree = newTree;
-        } catch (error: { message: string, location: OctoAst.Location }) {
+        } catch (error) {
+            // error: { message: string, location: OctoAst.Location }
             this.documentInfo[stringUri].error = error;
             // debugger
             let location = this.walkerLocationToVscodeLocation(document.uri, error.location);
