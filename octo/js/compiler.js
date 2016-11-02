@@ -670,7 +670,11 @@ function Compiler(source) {
 		else if (token == "clear")   { this.inst(0x00, 0xE0); }
 		// FX33 set_BCD(Vx); *(I+0)=BCD(3); *(I+1)=BCD(2); *(I+2)=BCD(1);
 		else if (token == "bcd")     { this.inst(0xF0 | this.register(), 0x33); }
-		// TODO
+		// Processes a normal Chip8 save instruction
+		// OR a XO save range instruction
+		// Destructively extracts the next token as a register
+		// If it is followed by a '-' token, use a special XO instruction
+		// and extract another register. Otherwise, use the Chip8 instruction
 		else if (token == "save")    {
 			var reg = this.register();
 			if (this.tokens.length > 0 && this.peek() == "-") {
@@ -679,10 +683,15 @@ function Compiler(source) {
 				this.inst(0x50 | reg, (this.register() << 4) | 0x02);
 			}
 			else {
+				// FX55 reg_dump(Vx,&I)
 				this.inst(0xF0 | reg, 0x55);
 			}
 		}
-		// TODO
+		// Processes a normal Chip8 load instruction
+		// OR a XO load range instruction
+		// Destructively extracts the next token as a register
+		// If it is followed by a '-' token, use a special XO instruction
+		// and extract another register. Otherwise, use the Chip8 instruction
 		else if (token == "load") {
 			var reg = this.register();
 			if (this.tokens.length > 0 && this.peek() == "-") {
@@ -690,6 +699,7 @@ function Compiler(source) {
 				this.xo = true;
 				this.inst(0x50 | reg, (this.register() << 4) | 0x03);
 			}
+			// FX65 reg_load(Vx,&I)
 			else {
 				this.inst(0xF0 | reg, 0x65);
 			}
@@ -714,18 +724,27 @@ function Compiler(source) {
 				// If the conditional is true, the branch statement will be skipped
 				// and the block will be executed.
 				// otherwise the next statement will be executed.
+				// This is achieved by pushing the current address to "branches"
+				// and inserting an empty instruction. Then, when an "else" or "end"
+				// token is found, a jump will overwrite the empty instruction.
 				this.conditional(true);
 				this.expect("begin");
-				// TODO: what does this actually do?
 				this.branches.push([this.here(), this.token, "begin"]);
-				this.inst(0x00, 0x00);
+				this.inst(0x00, 0x00); // reserve a spot in memory for the else or end
 			}
 			else {
 				this.token = control;
 				throw "Expected 'then' or 'begin'.";
 			}
 		}
-		// TODO
+		// Throws if there are no open branches.
+		// Gets the rom address stored for the inner-most open branch
+		// and places a jump address there that jumps to the current address + 2.
+		// This puts a jump address in the rom address reserved by the preceding
+		// if block pointing to the location at the beginning of the else block.
+		// The address before that (here) is reserved for the jump statement that
+		// will be inserted by the "end" keyword to point to the end of the
+		// conditional block.
 		else if (token == "else") {
 			if (this.branches.length < 1) {
 				throw "This 'else' does not have a matching 'begin'.";
@@ -734,7 +753,11 @@ function Compiler(source) {
 			this.branches.push([this.here(), this.token, "else"]);
 			this.inst(0x00, 0x00);
 		}
-		// TODO
+		// Throws if there are no open branches.
+		// Gets the rom address stored for the inner-most open branch
+		// and places a jump address there that jumps to the current address.
+		// This puts a jump address in the rom address reserved by the preceding
+		// if/begin/else pointing to the location AFTER the conditional block.
 		else if (token == "end") {
 			if (this.branches.length < 1) {
 				throw "This 'end' does not have a matching 'begin'.";
@@ -747,20 +770,35 @@ function Compiler(source) {
 		else if (token == "jump")    { this.immediate(0x10, this.wideValue()); }
 		// 0NNN Calls RCA 1802 program at address NNN.
 		else if (token == "native")  { this.immediate(0x00, this.wideValue()); }
-		// TODO
+		// Sprite commands are of the form: sprite vx vy n
+		// Destructively read the next three tokens as vx, vy, and n
+		// Build the instruction
 		else if (token == "sprite")  {
 			var r1 = this.register();
 			var r2 = this.register();
 			var size = this.tinyValue();
 			if (size == 0) { this.schip = true; }
+			// DXYN draw(Vx,Vy,N)
 			this.inst(0xD0 | r1, (r2 << 4) | size);
 		}
-		// TODO
+		// A loop can have 0 or more while statements
+		// So push the current address for the beginning
+		// of the loop to the loops array and push null
+		// to the whiles array. This will be used when
+		// processing an "again" token to know that that
+		// the end of the current loop has been reached.
 		else if (token == "loop") {
 			this.loops.push([this.here(), this.token]);
 			this.whiles.push(null);
 		}
-		// TODO
+		// A while token is followed by a conditional statement.
+		// Pushes the current address to the loops list so that
+		// the current address can be replaced with a jump statement
+		// pointing to the end of the loop.
+		// Reserves a spot for the jump instruction to be overriden
+		// But instead of using "this.inst(0x00, 0x00);" as it did
+		// with the conditional (begin, else) statements, it emits
+		// a jump instruction to address 0.
 		else if (token == "while") {
 			if (this.loops.length < 1) {
 				throw "This 'while' is not within a loop.";
@@ -769,26 +807,35 @@ function Compiler(source) {
 			this.whiles.push(this.here());
 			this.immediate(0x10, 0);
 		}
-		// TODO
+		// Emit a jump to go back to the beginning of the loop
+		// Then find all the whiles in this loop (loops can be embedded)
+		// and replace the addresses they reserved with a jump statement
+		// to here, the location after the loop.
 		else if (token == "again") {
 			if (this.loops.length < 1) {
 				throw "This 'again' does not have a matching 'loop'.";
 			}
+			// Immediate instruction is used because it advances the address
+			// which makes this.here() point to the right place when adding
+			// the jumps for the while statements. this.jump does NOT advances
+			// the address which makes it suitable for performing in a loop
 			this.immediate(0x10, this.loops.pop()[0]);
 			while (this.whiles[this.whiles.length - 1] != null) {
 				this.jump(this.whiles.pop(), this.here());
 			}
 			this.whiles.pop();
 		}
-		// TODO
+		// Build an XO plane instruction by reading the next token as N
 		else if (token == "plane") {
 			var plane = this.tinyValue();
 			if (plane > 3) { throw "the plane bitmask must be [0, 3]."; }
 			this.xo = true;
 			this.inst(0xF0 | plane, 0x01);
 		}
+		// Build an XO audio instruction
 		else if (token == "audio") {
 			this.xo = true;
+			// 0xF002
 			this.inst(0xF0, 0x02);
 		}
 		// 0x00CN SChip - scroll-down n
@@ -805,14 +852,14 @@ function Compiler(source) {
 		else if (token == "lores")        { this.schip = true; this.inst(0x00, 0xFE); }
 		// 0x00FF SChip - switch to hires mode
 		else if (token == "hires")        { this.schip = true; this.inst(0x00, 0xFF); }
-		// TODO
+		// 0xFN75 SChip - Like a Chip8 save statement, but to special flag registers
 		else if (token == "saveflags") {
 			var flags = this.register();
 			if (flags > 7) { throw "saveflags argument must be v[0,7]."; }
 			this.schip = true;
 			this.inst(0xF0 | flags, 0x75);
 		}
-		// TODO
+		// 0xFN85 SChip - Like a Chip8 load statement, but from special flag registers
 		else if (token == "loadflags") {
 			var flags = this.register();
 			if (flags > 7) { throw "loadflags argument must be v[0,7]."; }
@@ -840,7 +887,7 @@ function Compiler(source) {
 
 	// The main compile method.
 	// 1. Set up default aliases
-	// 2. Reserve a jump slot ( TODO: WHAT DOES THIS MEAN?)
+	// 2. Reserve a jump slot by emitting an empty instruction to be replaced later
 	// 3. Iterate through tokens and process them
 	// 4. Validate program (no dangling branches, loops, etc.)
 	// 5. Fill empty rom memory with 0x00
